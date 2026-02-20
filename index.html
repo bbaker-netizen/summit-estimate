@@ -1335,27 +1335,58 @@ function attachToMonday(){
     }
   };
 
-  // Get session token from Monday SDK
-  if(window.monday){
-    window.monday.get('sessionToken').then(res => {
-      const token = res && res.data;
-      if(token && itemId){
-        doSave(token).catch(err => {
-          restore();
-          alert('Save error: ' + err.message);
-        });
-      } else {
-        restore();
-        alert('Cannot save: missing Monday session token or item ID.\n\nAre you running inside Monday.com?');
+  // Use monday.api() directly - handles auth natively in iframe
+    if(!itemId){
+            restore();
+            alert('No Monday item ID found.\nPlease open this app from within a Monday.com lead.');
+            return;
+    }
+      if(!window.monday){
+              restore();
+              alert('Monday SDK not loaded. Open this app from within Monday.com.');
+              return;
       }
-    }).catch(err => {
-      restore();
-      alert('Monday SDK error: ' + err.message);
-    });
-  } else {
-    restore();
-    alert('Monday SDK not loaded. Open this app from within Monday.com.');
-  }
+      // Call create_subitem via monday.api() - handles auth natively
+      const mutation = `mutation {
+            create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
+                    id
+                            name
+                                  }
+                                      }`;
+      window.monday.api(mutation)
+        .then(res => {
+                  const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
+                  if(subId){
+                              localStorage.setItem(vKey, vNum);
+                              restore();
+                              // Upload PDF via Netlify relay if we have PDF data
+                              if(pdfBase64){
+                                            fetch('https://summit-estimate.netlify.app/.netlify/functions/save-estimate',{
+                                                            method:'POST',
+                                                            headers:{'Content-Type':'application/json'},
+                                                            body:JSON.stringify({subitemId:subId, pdfBase64, fileName})
+                                            }).catch(()=>{}); // fire and forget - sub-item already created
+                              }
+                              // Show success toast
+                              try{
+                                            window.monday.execute('notice', {
+                                                            message: '\u2705 ' + subitemName,
+                                                            type: 'success',
+                                                            timeout: 6000
+                                            });
+                              }catch(e){
+                                            alert('\u2705 Saved!\n\n' + subitemName + '\n\nCheck the sub-items on this lead.');
+                              }
+                  } else {
+                              restore();
+                              const errMsg = res && res.errors ? JSON.stringify(res.errors) : 'Unknown error';
+                              alert('Sub-item creation failed:\n' + errMsg);
+                  }
+        })
+        .catch(err => {
+                  restore();
+                  alert('Monday API error: ' + err.message);
+        });
 }
 
 function initQBO(){
