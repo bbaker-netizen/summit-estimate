@@ -880,7 +880,7 @@ function setStatus(m){ const el=document.getElementById('draw-status'); if(el) e
 function parseFrac(s){
   if(!s) return 0;
   let total=0;
-  s.trim().split(/s+/).forEach(p=>{
+  s.trim().split(/\s+/).forEach(p=>{
     if(p.includes('/')) { const[n,d]=p.split('/'); total+=parseFloat(n)/parseFloat(d); }
     else total+=parseFloat(p)||0;
   });
@@ -938,7 +938,7 @@ function initCabinets(){
   [{code:'K01',loc:'Kitchen',size:'2 5/8 x 4 3/4',qty:20},{code:'K02',loc:'Vanity',size:'2 3/8 x 7',qty:9}].forEach(c => addKickRow(c));
 }
 
-function mkDel(){ return '<button class="btn btn-danger btn-sm no-print" onclick="this.closest('tr').remove();calcQuote()">✕</button>'; }
+function mkDel(){ return `<button class="btn btn-danger btn-sm no-print" onclick="this.closest('tr').remove();calcQuote()">&#x2715;</button>`; }
 
 function addCabRow(c={}){
   const tb=document.getElementById('cab-tbody');
