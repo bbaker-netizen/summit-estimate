@@ -1247,102 +1247,117 @@ function attachToMonday(){
   const quoteDoc = document.getElementById('quote-doc');
   if(!quoteDoc){alert('Please go to the Quote tab first'); return;}
 
-  // Gather naming info from app state
+  // Gather naming info
   const estNum = (document.getElementById('est-num')||{}).value || 'EST-???';
   const client = (document.getElementById('client-name')||{}).value || 'Unknown';
   const today = new Date();
-  const dateStr = today.toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}).replace(',','');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateStr = months[today.getMonth()] + ' ' + today.getDate() + ' ' + today.getFullYear();
 
   // Get Monday context from URL
   const urlP = new URLSearchParams(window.location.search);
-  const boardId = urlP.get('boardId') || '';
   const itemId = urlP.get('itemId') || '';
 
-  // Determine next version number using localStorage versioning
+  // Version tracking
   const vKey = 'seVer_' + (itemId || 'default');
   const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
-  const versionLabel = 'v' + vNum;
+  const shortEst = estNum.replace(/^EST-0+/,'EST-');
+  const subitemName = shortEst + ' – ' + client + ' – v' + vNum + ' [' + dateStr + ']';
 
-  // Build sub-item name: EST-1 - Zafra - v1 [Feb 20 2026]
-  const shortEst = estNum.replace('EST-00','EST-').replace('EST-0','EST-');
-  const subitemName = shortEst + ' – ' + client + ' – ' + versionLabel + ' [' + dateStr + ']';
+  // Show saving indicator
+  const saveBtn = document.querySelector('.header-actions button:last-child');
+  if(saveBtn){ saveBtn.textContent = '⏳ Saving...'; saveBtn.disabled = true; }
 
-  // Generate PDF using jsPDF
-  const generateAndAttach = async () => {
-    let pdfBlob;
-    try {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'letter'});
-      await pdf.html(quoteDoc, {
-        callback: function(doc){ pdfBlob = doc.output('blob'); },
-        x: 10, y: 10, width: 190, windowWidth: 800
-      });
-    } catch(e){
-      // Fallback: HTML blob if jsPDF unavailable
-      const html = '<!DOCTYPE html><html><head><meta charset=UTF-8><title>' + subitemName + '</title></head><body>' + quoteDoc.outerHTML + '</body></html>';
-      pdfBlob = new Blob([html], {type:'text/html'});
-    }
-
-    // Try Monday SDK path first
-    if(window.monday && boardId && itemId){
-      try{
-        // Step 1: Create sub-item via Monday GraphQL API
-        const createMutation = `mutation {
-          create_subitem (parent_item_id: ${itemId}, item_name: "${subitemName.replace(/"/g,'')}", create_labels_if_missing: true) {
-            id
-          }
-        }`;
-        const createResp = await window.monday.api(createMutation);
-        const subitemId = createResp && createResp.data && createResp.data.create_subitem && createResp.data.create_subitem.id;
-
-        if(subitemId){
-          // Step 2: Upload PDF to the new sub-item Files column
-          const fileName = subitemName.replace(/[\\/:*?"<>|]/g,'_') + '.pdf';
-          const file = new File([pdfBlob], fileName, {type:'application/pdf'});
-          const uploadMutation = `mutation ($file: File!) {
-            add_file_to_column (item_id: ${subitemId}, column_id: "files", file: $file) {
-              id
-            }
-          }`;
-          await window.monday.api(uploadMutation, {variables:{file}});
-
-          // Save version number
-          localStorage.setItem(vKey, vNum);
-
-          // Notify user
-          window.monday.execute('notice', {
-            message: '✅ Saved: ' + subitemName,
-            type: 'success',
-            timeout: 5000
-          });
-          return;
-        }
-      } catch(sdkErr){
-        console.warn('Monday SDK subitem creation failed:', sdkErr);
-      }
-    }
-
-    // Fallback: download locally + show instructions
-    const ext = pdfBlob.type === 'application/pdf' ? 'pdf' : 'html';
-    const fileName = subitemName.replace(/[\\/:*?"<>|]/g,'_') + '.' + ext;
-    const url = URL.createObjectURL(pdfBlob);
-    const a = document.createElement('a');
-    a.href = url; a.download = fileName; a.click();
-    URL.revokeObjectURL(url);
-
-    // Save version number even in fallback
-    localStorage.setItem(vKey, vNum);
-
-    setTimeout(()=>{
-      alert('📎 Estimate saved as: ' + subitemName + '\n\nTo file it in monday.com:\n1. Open the Updates tab on this lead\n2. Attach the downloaded file\n\nVersion ' + versionLabel + ' recorded locally.');
-    }, 500);
+  const restore = () => {
+    if(saveBtn){ saveBtn.textContent = '💾 Save Estimate'; saveBtn.disabled = false; }
   };
 
-  generateAndAttach().catch(err => {
-    console.error('Save estimate error:', err);
-    alert('Error saving estimate: ' + err.message);
-  });
+  // Generate PDF using jsPDF then send to Netlify relay
+  const doSave = async (token) => {
+    let pdfBase64 = null;
+    let fileName = (subitemName.replace(/[\\/:*?"<>|]/g,'_') + '.pdf');
+
+    try {
+      if(window.jspdf){
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'letter'});
+        await new Promise((resolve) => {
+          pdf.html(quoteDoc, {
+            callback: function(doc){
+              pdfBase64 = doc.output('datauristring').split(',')[1];
+              resolve();
+            },
+            x:10, y:10, width:190, windowWidth:800
+          });
+        });
+      }
+    } catch(pdfErr){
+      console.warn('PDF generation warning:', pdfErr.message);
+    }
+
+    // Call Netlify relay
+    const payload = { token, itemId, subitemName, pdfBase64, fileName };
+    const resp = await fetch('https://summit-estimate.netlify.app/.netlify/functions/save-estimate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+
+    if(result.ok){
+      localStorage.setItem(vKey, vNum);
+      restore();
+      // Show success via Monday SDK if available
+      if(window.monday){
+        try{
+          window.monday.execute('notice', {
+            message: '✅ ' + subitemName,
+            type: 'success',
+            timeout: 6000
+          });
+        }catch(e){}
+      } else {
+        alert('✅ Saved!\n\n' + subitemName + '\n\nCheck the sub-items on this lead.');
+      }
+    } else {
+      restore();
+      // Fallback: download locally
+      if(pdfBase64){
+        const blob = new Blob([Uint8Array.from(atob(pdfBase64), c=>c.charCodeAt(0))], {type:'application/pdf'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href=url; a.download=fileName; a.click();
+        URL.revokeObjectURL(url);
+        localStorage.setItem(vKey, vNum);
+        alert('📎 Saved locally as:\n' + fileName + '\n\nUpload this file to the Files tab on this lead.\n\n(API note: ' + (result.message||'relay unavailable') + ')');
+      } else {
+        alert('Save failed: ' + (result.message || 'Unknown error'));
+      }
+    }
+  };
+
+  // Get session token from Monday SDK
+  if(window.monday){
+    window.monday.get('sessionToken').then(res => {
+      const token = res && res.data;
+      if(token && itemId){
+        doSave(token).catch(err => {
+          restore();
+          alert('Save error: ' + err.message);
+        });
+      } else {
+        restore();
+        alert('Cannot save: missing Monday session token or item ID.\n\nAre you running inside Monday.com?');
+      }
+    }).catch(err => {
+      restore();
+      alert('Monday SDK error: ' + err.message);
+    });
+  } else {
+    restore();
+    alert('Monday SDK not loaded. Open this app from within Monday.com.');
+  }
 }
+
 function initQBO(){
   const stored=localStorage.getItem('qboConnection');
   if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
