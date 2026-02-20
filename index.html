@@ -514,6 +514,15 @@ textarea{resize:vertical;min-height:55px}
   </div>
 </div><script>
 // ========== STATE ==========
+
+// ========== PER-ITEM STORAGE KEY ==========
+// Monday.com passes ?itemId=XXXXX in the iframe URL so each job has isolated data
+function getStorageKey(){
+  const params = new URLSearchParams(window.location.search);
+  const itemId = params.get('itemId') || params.get('item_id') || 'default';
+  return 'seData_' + itemId;
+}
+
 let canvas, ctx;
 let tool = 'pen';
 let drawing = false;
@@ -1324,14 +1333,14 @@ function saveData(){
       markup:getVal('markup-pct'),gst:getVal('gst-pct'),
       scale:{px:scalePxPerUnit,unit:scaleUnit}
     };
-    localStorage.setItem('seData',JSON.stringify(d));
+    localStorage.setItem(getStorageKey(),JSON.stringify(d));
     const btn=document.querySelector('.btn-outline');
     if(btn&&btn.textContent.includes('Save')){btn.textContent='✅ Saved!'; setTimeout(()=>btn.textContent='💾 Save',1600);}
   }catch(e){}
 }
 function loadData(){
   try{
-    const raw=localStorage.getItem('seData');
+    const raw=localStorage.getItem(getStorageKey());
     if(!raw) return;
     const d=JSON.parse(raw);
     if(!d) return;
