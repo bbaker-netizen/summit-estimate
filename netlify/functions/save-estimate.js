@@ -1,127 +1,84 @@
 // netlify/functions/save-estimate.js
-// Backend relay for Monday.com file upload + sub-item creation
-// Receives: { token, itemId, boardId, subitemName, pdfBase64, fileName }
-// Returns: { ok, subitemId, message }
+// PDF upload relay for Monday.com
+// Receives: { subitemId, pdfBase64, fileName }
+// Uploads PDF to Monday Files column on the specified sub-item
+// Sub-item creation is handled client-side via monday.api()
+
+const fetch = require('node-fetch');
+const FormData = require('form-data');
 
 exports.handler = async function(event, context) {
-  // CORS headers for the iframe origin
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Content-Type': 'application/json'
-  };
-
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
-  }
-
-  let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch(e) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
-  }
-
-  const { token, itemId, subitemName, pdfBase64, fileName } = body;
-  if (!token || !itemId || !subitemName) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing required fields: token, itemId, subitemName' }) };
-  }
-
-  const MONDAY_API = 'https://api.monday.com/v2';
-  const authHeader = { 'Authorization': token, 'Content-Type': 'application/json', 'API-Version': '2024-01' };
-
-  try {
-    // Step 1: Create the sub-item
-    const createMutation = {
-      query: `mutation($name: String!, $parentId: ID!) {
-        create_subitem(parent_item_id: $parentId, item_name: $name, create_labels_if_missing: true) {
-          id
-          name
-        }
-      }`,
-      variables: { name: subitemName, parentId: String(itemId) }
+    const headers = {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Content-Type': 'application/json'
     };
 
-    const createRes = await fetch(MONDAY_API, {
-      method: 'POST',
-      headers: authHeader,
-      body: JSON.stringify(createMutation)
-    });
-    const createData = await createRes.json();
-
-    if (createData.errors) {
-      console.error('Create subitem error:', JSON.stringify(createData.errors));
-      return {
-        statusCode: 200, headers,
-        body: JSON.stringify({ ok: false, message: 'Sub-item creation failed: ' + createData.errors[0].message })
-      };
+    if (event.httpMethod === 'OPTIONS') {
+          return { statusCode: 200, headers, body: '' };
     }
 
-    const subitemId = createData.data && createData.data.create_subitem && createData.data.create_subitem.id;
-    if (!subitemId) {
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: false, message: 'No subitem ID returned' }) };
+    if (event.httpMethod !== 'POST') {
+          return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
     }
 
-    // Step 2: Upload PDF to the sub-item Files column (if PDF provided)
-    if (pdfBase64 && fileName) {
-      try {
-        const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+    let body;
+    try {
+          body = JSON.parse(event.body);
+    } catch(e) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
+    }
 
-        // Monday file upload uses multipart/form-data with GraphQL
-        const uploadQuery = 'mutation($file: File!) { add_file_to_column(item_id: ' + subitemId + ', column_id: "files", file: $file) { id } }';
+    const { subitemId, pdfBase64, fileName } = body;
 
-        const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
-        const CRLF = '\r\n';
+    if (!subitemId || !pdfBase64 || !fileName) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing required fields: subitemId, pdfBase64, fileName' }) };
+    }
 
-        // Build multipart body manually
-        let multipartParts = [];
-        multipartParts.push(
-          '--' + boundary + CRLF +
-          'Content-Disposition: form-data; name="query"' + CRLF + CRLF +
-          uploadQuery + CRLF
-        );
-        multipartParts.push(
-          '--' + boundary + CRLF +
-          'Content-Disposition: form-data; name="variables[file]"; filename="' + fileName + '"' + CRLF +
-          'Content-Type: application/pdf' + CRLF + CRLF
-        );
+    const MONDAY_API_TOKEN = process.env.MONDAY_API_TOKEN;
+    if (!MONDAY_API_TOKEN) {
+          return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server not configured: missing MONDAY_API_TOKEN' }) };
+    }
 
-        const header = Buffer.from(multipartParts[0] + multipartParts[1], 'utf8');
-        const footer = Buffer.from(CRLF + '--' + boundary + '--' + CRLF, 'utf8');
-        const fullBody = Buffer.concat([header, pdfBuffer, footer]);
+    try {
+          // Convert base64 PDF to buffer
+      const pdfBuffer = Buffer.from(pdfBase64, 'base64');
 
-        const uploadRes = await fetch('https://api.monday.com/v2/file', {
-          method: 'POST',
-          headers: {
-            'Authorization': token,
-            'API-Version': '2024-01',
-            'Content-Type': 'multipart/form-data; boundary=' + boundary
-          },
-          body: fullBody
-        });
+      // Upload file to Monday.com Files column on the sub-item
+      const query = `mutation add_file($file: File!) {
+            add_file_to_column(item_id: ${subitemId}, column_id: "files", file: $file) {
+                    id
+                          }
+                              }`;
 
-        const uploadText = await uploadRes.text();
-        console.log('Upload response:', uploadText);
-      } catch(uploadErr) {
-        console.warn('File upload warning (subitem was created):', uploadErr.message);
-        // Don't fail the whole operation - subitem exists, just no file
+      const form = new FormData();
+          form.append('query', query);
+          form.append('variables[file]', pdfBuffer, {
+                  filename: fileName,
+                  contentType: 'application/pdf'
+          });
+
+      const uploadResp = await fetch('https://api.monday.com/v2/file', {
+              method: 'POST',
+              headers: {
+                        'Authorization': MONDAY_API_TOKEN,
+                        ...form.getHeaders()
+              },
+              body: form
+      });
+
+      const uploadResult = await uploadResp.json();
+
+      if (uploadResult.errors) {
+              console.error('Monday upload error:', JSON.stringify(uploadResult.errors));
+              return { statusCode: 200, headers, body: JSON.stringify({ ok: false, message: 'PDF upload failed: ' + JSON.stringify(uploadResult.errors) }) };
       }
+
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, message: 'PDF uploaded successfully' }) };
+
+    } catch(err) {
+          console.error('save-estimate error:', err.message);
+          return { statusCode: 500, headers, body: JSON.stringify({ ok: false, message: err.message }) };
     }
-
-    return {
-      statusCode: 200, headers,
-      body: JSON.stringify({ ok: true, subitemId, subitemName, message: 'Saved: ' + subitemName })
-    };
-
-  } catch(err) {
-    console.error('save-estimate error:', err);
-    return {
-      statusCode: 500, headers,
-      body: JSON.stringify({ ok: false, message: err.message })
-    };
-  }
 };
