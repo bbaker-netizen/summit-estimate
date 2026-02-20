@@ -119,7 +119,7 @@ textarea{resize:vertical;min-height:55px}
   <div class="header-actions no-print">
     <button class="btn btn-outline btn-sm" onclick="saveData()">💾 Save</button>
     <button class="btn btn-success btn-sm" onclick="exportQuotePDF()">📄 Quote PDF</button>
-    <button class="btn btn-primary btn-sm" onclick="attachToMonday()">📎 Attach to Item</button>
+    <button class="btn btn-primary btn-sm" onclick="attachToMonday()">💾 Save Estimate</button>
   </div>
 </div>
 
@@ -1243,38 +1243,106 @@ function exportQuotePDF(){
 }
 
 function attachToMonday(){
-  // Generate an HTML blob of the quote, then use monday SDK to attach to Files tab
   buildQuote();
-  const quoteDoc=document.getElementById('quote-doc');
+  const quoteDoc = document.getElementById('quote-doc');
   if(!quoteDoc){alert('Please go to the Quote tab first'); return;}
-  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Summit Estimate</title><style>body{font-family:Arial,sans-serif;padding:20px;max-width:800px;margin:0 auto}</style></head><body>'+quoteDoc.innerHTML+'</body></html>';
-  const blob=new Blob([html],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  const estNum=getVal('p-estnum')||'EST';
-  const client=getVal('p-client')||'Client';
-  a.href=url;
-  a.download='Summit-Estimate-'+client+'-'+estNum+'.html';
-  a.click();
-  URL.revokeObjectURL(url);
-  
-  // Attempt Monday SDK file upload (works when app has files:write scope)
-  try{
-    if(window.monday){
-      window.monday.execute('openAppFeatureModal',{
-        url: 'about:blank',
-        width: 100, height: 100
-      }).catch(()=>{});
-    }
-  } catch(e){}
-  
-  // Show instructions
-  setTimeout(()=>{
-    alert('📎 The estimate HTML file has been downloaded.\n\nTo attach it to this subitem:\n1. Go to the Files tab on this subitem\n2. Click + Add File → upload the downloaded file\n3. You can then share the link with your client via the Updates tab');
-  },500);
-}
 
-// ========== QBO ==========
+  // Gather naming info from app state
+  const estNum = (document.getElementById('est-num')||{}).value || 'EST-???';
+  const client = (document.getElementById('client-name')||{}).value || 'Unknown';
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}).replace(',','');
+
+  // Get Monday context from URL
+  const urlP = new URLSearchParams(window.location.search);
+  const boardId = urlP.get('boardId') || '';
+  const itemId = urlP.get('itemId') || '';
+
+  // Determine next version number using localStorage versioning
+  const vKey = 'seVer_' + (itemId || 'default');
+  const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
+  const versionLabel = 'v' + vNum;
+
+  // Build sub-item name: EST-1 - Zafra - v1 [Feb 20 2026]
+  const shortEst = estNum.replace('EST-00','EST-').replace('EST-0','EST-');
+  const subitemName = shortEst + ' – ' + client + ' – ' + versionLabel + ' [' + dateStr + ']';
+
+  // Generate PDF using jsPDF
+  const generateAndAttach = async () => {
+    let pdfBlob;
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'letter'});
+      await pdf.html(quoteDoc, {
+        callback: function(doc){ pdfBlob = doc.output('blob'); },
+        x: 10, y: 10, width: 190, windowWidth: 800
+      });
+    } catch(e){
+      // Fallback: HTML blob if jsPDF unavailable
+      const html = '<!DOCTYPE html><html><head><meta charset=UTF-8><title>' + subitemName + '</title></head><body>' + quoteDoc.outerHTML + '</body></html>';
+      pdfBlob = new Blob([html], {type:'text/html'});
+    }
+
+    // Try Monday SDK path first
+    if(window.monday && boardId && itemId){
+      try{
+        // Step 1: Create sub-item via Monday GraphQL API
+        const createMutation = `mutation {
+          create_subitem (parent_item_id: ${itemId}, item_name: "${subitemName.replace(/"/g,'')}", create_labels_if_missing: true) {
+            id
+          }
+        }`;
+        const createResp = await window.monday.api(createMutation);
+        const subitemId = createResp && createResp.data && createResp.data.create_subitem && createResp.data.create_subitem.id;
+
+        if(subitemId){
+          // Step 2: Upload PDF to the new sub-item Files column
+          const fileName = subitemName.replace(/[\\/:*?"<>|]/g,'_') + '.pdf';
+          const file = new File([pdfBlob], fileName, {type:'application/pdf'});
+          const uploadMutation = `mutation ($file: File!) {
+            add_file_to_column (item_id: ${subitemId}, column_id: "files", file: $file) {
+              id
+            }
+          }`;
+          await window.monday.api(uploadMutation, {variables:{file}});
+
+          // Save version number
+          localStorage.setItem(vKey, vNum);
+
+          // Notify user
+          window.monday.execute('notice', {
+            message: '✅ Saved: ' + subitemName,
+            type: 'success',
+            timeout: 5000
+          });
+          return;
+        }
+      } catch(sdkErr){
+        console.warn('Monday SDK subitem creation failed:', sdkErr);
+      }
+    }
+
+    // Fallback: download locally + show instructions
+    const ext = pdfBlob.type === 'application/pdf' ? 'pdf' : 'html';
+    const fileName = subitemName.replace(/[\\/:*?"<>|]/g,'_') + '.' + ext;
+    const url = URL.createObjectURL(pdfBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName; a.click();
+    URL.revokeObjectURL(url);
+
+    // Save version number even in fallback
+    localStorage.setItem(vKey, vNum);
+
+    setTimeout(()=>{
+      alert('📎 Estimate saved as: ' + subitemName + '\n\nTo file it in monday.com:\n1. Open the Updates tab on this lead\n2. Attach the downloaded file\n\nVersion ' + versionLabel + ' recorded locally.');
+    }, 500);
+  };
+
+  generateAndAttach().catch(err => {
+    console.error('Save estimate error:', err);
+    alert('Error saving estimate: ' + err.message);
+  });
+}
 function initQBO(){
   const stored=localStorage.getItem('qboConnection');
   if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
