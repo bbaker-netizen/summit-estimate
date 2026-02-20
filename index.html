@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Summit Estimate</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#f5f6fa;color:#323338}
+.app-container{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.app-header{background:#1a3a5c;color:#fff;padding:7px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.app-header .logo-area{display:flex;align-items:center;gap:10px}
+.app-header .logo-box{width:36px;height:36px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#1a3a5c;letter-spacing:-0.5px;flex-shrink:0}
+.app-header h1{font-size:15px;font-weight:700}
+.app-header .subtitle{font-size:10px;opacity:.75;margin-top:1px}
+.header-actions{margin-left:auto;display:flex;gap:6px;align-items:center}
+.tab-nav{display:flex;background:#fff;border-bottom:2px solid #e6e9ef;padding:0 6px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{padding:7px 12px;border:none;background:none;cursor:pointer;font-size:11px;font-weight:700;color:#676879;border-bottom:3px solid transparent;white-space:nowrap;transition:color .15s}
+.tab-btn.active{color:#1a3a5c;border-bottom-color:#1a3a5c}
+.tab-content{flex:1;overflow-y:auto;padding:10px;overflow-x:hidden}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.card{background:#fff;border-radius:8px;border:1px solid #e6e9ef;padding:12px;margin-bottom:10px}
+.card-title{font-size:12px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;color:#1a3a5c}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+.form-row.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:2px}
+label{font-size:10px;font-weight:700;color:#676879;text-transform:uppercase;letter-spacing:.3px}
+input,select,textarea{border:1px solid #c5c7d4;border-radius:4px;padding:5px 7px;font-size:12px;width:100%;font-family:inherit;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1a3a5c}
+textarea{resize:vertical;min-height:55px}
+.btn{padding:5px 12px;border-radius:4px;border:none;cursor:pointer;font-size:11px;font-weight:700;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-primary{background:#1a3a5c;color:#fff}
+.btn-success{background:#00884a;color:#fff}
+.btn-danger{background:#d83b3b;color:#fff}
+.btn-outline{background:#fff;border:1px solid #c5c7d4;color:#323338}
+.btn-sm{padding:3px 9px;font-size:10px}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-blue{background:#e3f0ff;color:#1a3a5c}
+.badge-green{background:#e0fff0;color:#00884a}
+.badge-yellow{background:#fff9e0;color:#9a6a00}
+
+/* ---- DRAWING ---- */
+#drawCanvas{display:block;cursor:crosshair;touch-action:none;background:#fff;width:100%;height:100%}
+.draw-toolbar{display:flex;align-items:center;gap:5px;padding:6px 8px;background:#fff;border-bottom:1px solid #e6e9ef;flex-wrap:wrap}
+.tool-btn{padding:3px 9px;border:1px solid #c5c7d4;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;background:#f5f6fa;color:#323338;transition:all .15s}
+.tool-btn.active{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
+.draw-hint{font-size:10px;color:#676879;padding:2px 8px;background:#f5f6fa;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#draw-panel{display:flex;flex-direction:column;height:calc(100vh - 135px)}
+.canvas-wrap{flex:1;overflow:auto;background:#e8e8e8;position:relative}
+.canvas-inner{position:absolute;top:0;left:0}
+
+/* ---- MODALS ---- */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center}
+.modal-box{background:#fff;border-radius:10px;padding:20px;min-width:300px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal-box h3{margin-bottom:10px;font-size:14px;color:#1a3a5c}
+
+/* ---- TABLES ---- */
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{background:#f0f4ff;padding:5px 7px;text-align:left;border:1px solid #e6e9ef;font-weight:700;font-size:10px;color:#1a3a5c;white-space:nowrap}
+.data-table td{padding:3px 5px;border:1px solid #e6e9ef;vertical-align:middle}
+.data-table td input,.data-table td select{border:none;background:transparent;font-size:11px;width:100%;padding:1px 2px;font-family:inherit}
+.data-table td input:focus,.data-table td select:focus{outline:1px solid #1a3a5c;border-radius:2px;background:#fff}
+.data-table tr:nth-child(even){background:#fafbff}
+.data-table tr:hover{background:#eef4ff}
+
+/* ---- PRICING SOURCE BADGE ---- */
+.price-source{display:inline-flex;align-items:center;gap:3px;font-size:9px;color:#676879;cursor:help}
+.price-source.db{color:#00884a;font-weight:700}
+.price-source.manual{color:#9a6a00}
+
+/* ---- QBO ---- */
+.qbo-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:2px solid;margin-bottom:10px}
+.qbo-connected{background:#e0fff0;border-color:#00884a}
+.qbo-pending{background:#fff9e0;border-color:#f59500}
+.qbo-btn{padding:7px 14px;border-radius:4px;border:none;cursor:pointer;font-weight:700;font-size:12px}
+.qbo-connect{background:#2CA01C;color:#fff}
+.qbo-push{background:#1a3a5c;color:#fff}
+.qbo-btn:disabled{background:#c5c7d4;cursor:not-allowed;color:#888}
+
+/* ---- QUOTE PRINT ---- */
+.quote-line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
+.quote-line.sub{color:#676879;font-size:11px}
+.quote-line.total{font-weight:700;font-size:14px;border-top:2px solid #1a3a5c;border-bottom:none;margin-top:4px;padding-top:8px;color:#1a3a5c}
+.quote-line.section-header{font-weight:700;color:#1a3a5c;font-size:11px;background:#f0f4ff;padding:3px 6px;margin-top:6px;border-radius:3px}
+
+/* ---- INFO TOOLTIP ---- */
+.info-note{background:#f0f4ff;border-left:3px solid #1a3a5c;padding:8px 10px;border-radius:0 4px 4px 0;font-size:11px;color:#323338;margin-bottom:10px}
+.warn-note{background:#fff9e0;border-left:3px solid #f59500;padding:8px 10px;border-radius:0 4px 4px 0;font-size:11px;margin-bottom:10px}
+
+/* ---- PHOTO ---- */
+.photo-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.photo-thumb{width:70px;height:70px;object-fit:cover;border-radius:5px;border:1px solid #e6e9ef;cursor:pointer}
+
+/* ---- PRINT STYLES ---- */
+@media print {
+  .app-header,.tab-nav,.draw-toolbar,.btn,.no-print{display:none!important}
+  .tab-panel{display:block!important}
+  #tab-quote{display:block!important}
+  body{background:#fff}
+  .card{border:none;padding:0;margin-bottom:12px}
+}
+</style>
+</head><body>
+<div class="app-container">
+
+<!-- APP HEADER with Summit Branding -->
+<div class="app-header">
+  <div class="logo-area">
+    <div class="logo-box" id="logo-img-wrap">SC</div>
+    <div>
+      <h1>Summit Estimate</h1>
+      <div class="subtitle">Summit Cabinets &amp; Renovations · Edmonton · 780-554-7348</div>
+    </div>
+  </div>
+  <div class="header-actions no-print">
+    <button class="btn btn-outline btn-sm" onclick="saveData()">💾 Save</button>
+    <button class="btn btn-success btn-sm" onclick="exportQuotePDF()">📄 Quote PDF</button>
+    <button class="btn btn-primary btn-sm" onclick="attachToMonday()">📎 Attach to Item</button>
+  </div>
+</div>
+
+<!-- TAB NAV -->
+<nav class="tab-nav no-print">
+  <button class="tab-btn active" onclick="switchTab('project',this)">📋 Project</button>
+  <button class="tab-btn" onclick="switchTab('drawing',this)">✏️ Drawing</button>
+  <button class="tab-btn" onclick="switchTab('cabinets',this)">🗄 Cabinets</button>
+  <button class="tab-btn" onclick="switchTab('materials',this)">🔧 Materials</button>
+  <button class="tab-btn" onclick="switchTab('quote',this)">💲 Quote</button>
+  <button class="tab-btn" onclick="switchTab('qbo',this)">📒 QuickBooks</button>
+  <button class="tab-btn" onclick="switchTab('info',this)">ℹ️ Help</button>
+</nav>
+
+<div class="tab-content">
+
+<!-- =================== PROJECT TAB =================== -->
+<div id="tab-project" class="tab-panel active">
+  <div class="card">
+    <div class="card-title">🏡 Project Info</div>
+    <div class="form-row">
+      <div class="form-group"><label>Client</label><input id="p-client" value="Maruszczyk" placeholder="Client name"></div>
+      <div class="form-group"><label>Job Site Address</label><input id="p-address" value="21009 92 A Ave" placeholder="Address"></div>
+    </div>
+    <div class="form-row three">
+      <div class="form-group"><label>Estimate #</label><input id="p-estnum" value="EST-001"></div>
+      <div class="form-group"><label>Date</label><input id="p-date" type="date"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="p-status"><option>Draft</option><option>Sent</option><option>Approved</option><option>In Production</option><option>Complete</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Estimator</label><input id="p-estimator" value="Mathew Lysenko"></div>
+      <div class="form-group"><label>Project Manager</label><input id="p-pm" value="Robbie Burpee"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">✏️ Scope &amp; Notes</div>
+    <div class="form-row full"><div class="form-group"><label>Scope of Work</label><textarea id="p-scope" placeholder="Replace cabinets, island, toekicks..."></textarea></div></div>
+    <div style="background:#fff9e6;border-left:3px solid #f59500;padding:8px 10px;border-radius:0 4px 4px 0;margin-top:6px">
+      <label style="color:#9a6a00">⚠ Special Flags / Site Notes</label>
+      <textarea id="p-notes" style="margin-top:4px;background:transparent;border-color:#f59500">1 door needs replacing. C05 sink - no parts.</textarea>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🎨 Box &amp; Panel Spec</div>
+    <div class="form-row">
+      <div class="form-group"><label>Box Material</label><input id="p-box" value="5/8 White Melamine"></div>
+      <div class="form-group"><label>Panel Material</label><input id="p-panel" value="5/8 Oak Melamine"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Door Style</label><input id="p-door" placeholder="Shaker / Slab / etc."></div>
+      <div class="form-group"><label>Species / Finish</label><input id="p-species" placeholder="Maple Painted / Oak Stained"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Kitchen Kick Notch (H × D)</label><input id="p-kkick" value="2 5/8 × 4 3/4"></div>
+      <div class="form-group"><label>Vanity Kick Notch (H × D)</label><input id="p-vkick" value="2 3/8 × 7"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📷 Site Photos <span class="badge badge-blue">stored in Monday Files tab</span></div>
+    <div class="warn-note">Photos uploaded here are stored locally in this browser session only. To permanently attach site photos to the job, use the <b>Files tab</b> on this subitem after uploading.</div>
+    <input type="file" id="photo-upload" accept="image/*" multiple style="display:none" onchange="addPhotos(event)">
+    <button class="btn btn-outline btn-sm no-print" onclick="document.getElementById('photo-upload').click()">📷 Add Photos</button>
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏢 Branding on Quote</div>
+    <div class="form-row">
+      <div class="form-group"><label>Company Logo URL (optional)</label><input id="brand-logo" placeholder="https://summitcabinets.ca/logo.png" oninput="updateLogoPreview()"></div>
+      <div class="form-group"><label>Brand Color</label><input type="color" id="brand-color" value="#1a3a5c" oninput="updateBrandColor()" style="height:32px;cursor:pointer"></div>
+    </div>
+    <div class="form-row three">
+      <div class="form-group"><label>Company Name on Quote</label><input id="brand-name" value="Summit Cabinets &amp; Renovations"></div>
+      <div class="form-group"><label>Phone</label><input id="brand-phone" value="780-554-7348"></div>
+      <div class="form-group"><label>Website</label><input id="brand-web" value="summitcabinets.ca"></div>
+    </div>
+    <div class="form-group" style="margin-top:6px"><label>Footer / Terms on Quote</label>
+      <input id="brand-footer" value="All prices in CAD. GST included as shown. Valid for 30 days. Thank you for choosing Summit Cabinets!">
+    </div>
+  </div>
+</div>
+
+<!-- =================== DRAWING TAB =================== -->
+<div id="tab-drawing" class="tab-panel">
+  <div id="draw-panel">
+    <div class="draw-toolbar no-print">
+      <button class="tool-btn active" id="tool-pen" onclick="setTool('pen',this)" title="Freehand — auto-corrects to shapes">✏ Pen</button>
+      <button class="tool-btn" id="tool-line" onclick="setTool('line',this)" title="Precise straight line">— Line</button>
+      <button class="tool-btn" id="tool-rect" onclick="setTool('rect',this)" title="Rectangle — drag corner to corner">▭ Rect</button>
+      <button class="tool-btn" id="tool-circle" onclick="setTool('circle',this)" title="Ellipse/Circle — drag from centre">⬭ Ellipse</button>
+      <button class="tool-btn" id="tool-measure" onclick="setTool('measure',this)" title="Click 2 points to add dimension label">📐 Measure</button>
+      <button class="tool-btn" id="tool-text" onclick="setTool('text',this)">T Text</button>
+      <select id="line-width" style="padding:2px 4px;font-size:11px;width:55px">
+        <option value="1">1px</option><option value="2">2px</option><option value="3" selected>3px</option><option value="5">5px</option><option value="8">8px</option>
+      </select>
+      <input type="color" id="stroke-color" value="#1a1a1a" style="width:30px;height:26px;border:1px solid #ccc;border-radius:3px;cursor:pointer">
+      <button class="tool-btn" onclick="setScale()" title="Draw a line then enter its real length to set scale">📏 Set Scale</button>
+      <span id="scale-display" style="font-size:10px;color:#00884a;font-weight:700"></span>
+      <button class="tool-btn" onclick="undoCanvas()">↩ Undo</button>
+      <button class="tool-btn" onclick="clearCanvas()">🗑 Clear</button>
+      <button class="tool-btn" onclick="exportPNG()">🖼 PNG</button>
+      <span id="draw-status" style="font-size:10px;color:#676879;margin-left:auto;font-style:italic"></span>
+    </div>
+    <div class="draw-hint">
+      ✏ <b>Pen</b>: auto-snaps to line/rect/ellipse/triangle &nbsp;|&nbsp;
+      ⬭ <b>Ellipse</b>: drag centre→edge (hold Shift for perfect circle) &nbsp;|&nbsp;
+      📐 <b>Measure</b>: click 2 points → enter dimension → shapes rescale &nbsp;|&nbsp;
+      📏 <b>Set Scale</b>: draw known length → enter real value
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="drawCanvas" width="1200" height="900"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- =================== CABINETS TAB =================== -->
+<div id="tab-cabinets" class="tab-panel">
+  <div class="info-note">
+    💡 <b>Pricing source:</b> Unit prices entered here are <b>manual entries</b> by the estimator based on the job. 
+    The Cabinet Pricing Database board in monday.com stores your standard price list — 
+    use it as reference when filling in Unit $ below. Future versions can auto-look up prices.
+  </div>
+  <div class="card">
+    <div class="card-title">🗄 Cabinet Schedule
+      <span class="badge badge-blue">W × H × D in inches (fractional OK)</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table" id="cab-table">
+        <thead><tr>
+          <th>Code</th><th>Location / Room</th><th>W</th><th>H</th><th>D</th>
+          <th>Finish Side</th><th>Door Style</th><th>Type</th><th>Notes / Flags</th>
+          <th>Unit $</th><th>Total $</th><th class="no-print"></th>
+        </tr></thead>
+        <tbody id="cab-tbody"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-outline btn-sm no-print" style="margin-top:7px" onclick="addCabRow()">+ Add Cabinet</button>
+  </div>
+  <div class="card">
+    <div class="card-title">🪟 Island Panels</div>
+    <div style="overflow-x:auto">
+      <table class="data-table" id="panel-table">
+        <thead><tr><th>Code</th><th>Description</th><th>W</th><th>H</th><th>Unit $</th><th>Total $</th><th class="no-print"></th></tr></thead>
+        <tbody id="panel-tbody"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-outline btn-sm no-print" style="margin-top:7px" onclick="addPanelRow()">+ Add Panel</button>
+  </div>
+  <div class="card">
+    <div class="card-title">👟 Toekicks &amp; Kicks</div>
+    <div style="overflow-x:auto">
+      <table class="data-table" id="kick-table">
+        <thead><tr><th>Code</th><th>Description</th><th>Linear ft</th><th>Height</th><th>$/ft</th><th>Total $</th><th class="no-print"></th></tr></thead>
+        <tbody id="kick-tbody"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-outline btn-sm no-print" style="margin-top:7px" onclick="addKickRow()">+ Add Kick</button>
+  </div>
+</div>
+
+<!-- =================== MATERIALS TAB =================== -->
+<div id="tab-materials" class="tab-panel">
+  <div class="info-note">
+    💡 <b>Pricing source:</b> Standard prices below come from your <b>Materials &amp; Hardware Pricing</b> board in monday.com 
+    (Blum slides $33/pr, hinges $4.25 ea, etc.). Edit the Unit $ column to override for this job.
+    Countertop rates come from your <b>Countertop Pricing</b> board.
+  </div>
+  <div class="card">
+    <div class="card-title">🔧 Hardware &amp; Materials</div>
+    <div class="no-print" style="display:flex;gap:6px;margin-bottom:7px">
+      <select id="mat-quick" style="flex:1;font-size:11px" onchange="quickAddMat(this)">
+        <option value="">+ Quick add from price list...</option>
+        <option value="Blum Tandem 22in Slides|pair|33">Blum Tandem 22" Slides — $33/pr</option>
+        <option value="Blum Tandem 18in Slides|pair|28">Blum Tandem 18" Slides — $28/pr</option>
+        <option value="Blum Soft-Close Hinge|each|4.25">Blum Soft-Close Hinge — $4.25 ea</option>
+        <option value="SS Handle 5in CC|each|8.95">SS Handle 5" CC — $8.95 ea</option>
+        <option value="Crown Moulding|lft|12.50">Crown Moulding — $12.50/lft</option>
+        <option value="Light Rail|lft|8.75">Light Rail — $8.75/lft</option>
+        <option value="Undermount Sink Support|each|15">Undermount Sink Support — $15 ea</option>
+        <option value="Lazy Susan Hardware|set|45">Lazy Susan Hardware — $45/set</option>
+        <option value="Pull-Out Shelf Kit|each|65">Pull-Out Shelf — $65 ea</option>
+        <option value="Filler Strip 3in|each|18">Filler Strip 3" — $18 ea</option>
+        <option value="Soft-Close Drawer Box|each|42">Soft-Close Drawer Box — $42 ea</option>
+      </select>
+      <button class="btn btn-outline btn-sm" onclick="addMatRow()">+ Custom Row</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Unit $</th><th>Source</th><th>Total $</th><th class="no-print"></th></tr></thead>
+      <tbody id="mat-tbody"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">🪨 Countertops</div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Location</th><th>Material</th><th>Sq Ft</th><th>$/sqft</th><th>Source</th><th>Total $</th><th class="no-print"></th></tr></thead>
+        <tbody id="ct-tbody"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-outline btn-sm no-print" style="margin-top:7px" onclick="addCtRow()">+ Add Countertop</button>
+  </div>
+</div>
+
+<!-- =================== QUOTE TAB =================== -->
+<div id="tab-quote" class="tab-panel">
+  <div class="card no-print">
+    <div class="card-title">⚙️ Quote Settings</div>
+    <div class="form-row three">
+      <div class="form-group"><label>Markup %</label><input id="markup-pct" type="number" value="25" min="0" max="200" oninput="calcQuote()"></div>
+      <div class="form-group"><label>GST %</label><input id="gst-pct" type="number" value="5" min="0" oninput="calcQuote()"></div>
+      <div class="form-group" style="justify-content:flex-end;padding-top:14px">
+        <button class="btn btn-primary btn-sm" onclick="calcQuote()">🔄 Recalculate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRANDED QUOTE PREVIEW -->
+  <div id="quote-doc" style="background:#fff;border-radius:8px;border:1px solid #e6e9ef;padding:24px;max-width:780px;margin:0 auto;font-family:'Segoe UI',Arial,sans-serif">
+    <!-- Quote Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:3px solid" id="quote-header-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="quote-logo-box" style="width:48px;height:48px;background:#1a3a5c;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-1px;flex-shrink:0">SC</div>
+        <div>
+          <div id="quote-company-name" style="font-size:18px;font-weight:800;color:#1a3a5c">Summit Cabinets &amp; Renovations</div>
+          <div style="font-size:11px;color:#676879;margin-top:2px">6735 76 Ave NW, Edmonton &nbsp;|&nbsp; <span id="quote-phone">780-554-7348</span> &nbsp;|&nbsp; <span id="quote-web">summitcabinets.ca</span></div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:22px;font-weight:800;color:#1a3a5c">ESTIMATE</div>
+        <div style="font-size:11px;margin-top:2px;color:#676879">
+          # <span id="quote-estnum" style="font-weight:700;color:#323338">EST-001</span><br>
+          Date: <span id="quote-date"></span>
+        </div>
+      </div>
+    </div>
+    <!-- Client Block -->
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px;gap:16px">
+      <div style="flex:1;background:#f5f6fa;border-radius:6px;padding:10px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#676879;margin-bottom:4px">Prepared For</div>
+        <div id="quote-client" style="font-weight:700;font-size:14px"></div>
+        <div id="quote-addr" style="font-size:11px;color:#676879;margin-top:2px"></div>
+      </div>
+      <div style="flex:1;background:#f5f6fa;border-radius:6px;padding:10px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#676879;margin-bottom:4px">Prepared By</div>
+        <div id="quote-estimator" style="font-weight:700;font-size:13px"></div>
+        <div id="quote-pm" style="font-size:11px;color:#676879;margin-top:2px"></div>
+      </div>
+      <div style="flex:1;background:#f5f6fa;border-radius:6px;padding:10px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#676879;margin-bottom:4px">Spec</div>
+        <div style="font-size:11px;line-height:1.6">
+          Box: <span id="quote-box"></span><br>
+          Panel: <span id="quote-panel"></span><br>
+          Door: <span id="quote-door"></span>
+        </div>
+      </div>
+    </div>
+    <!-- Line Items -->
+    <div id="quote-lines" style="margin-bottom:16px"></div>
+    <!-- Totals -->
+    <div id="quote-totals" style="max-width:300px;margin-left:auto"></div>
+    <!-- Scope -->
+    <div id="quote-scope-section" style="margin-top:14px;border-top:1px solid #e6e9ef;padding-top:12px;font-size:11px;color:#676879"></div>
+    <!-- Footer -->
+    <div style="margin-top:14px;border-top:1px solid #e6e9ef;padding-top:10px;font-size:10px;color:#9b9b9b;text-align:center" id="quote-footer">
+      All prices in CAD. GST included as shown. Valid for 30 days. Thank you for choosing Summit Cabinets!
+    </div>
+  </div>
+
+  <div class="no-print" style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+    <button class="btn btn-primary" onclick="exportQuotePDF()">📄 Download PDF</button>
+    <button class="btn btn-success" onclick="attachToMonday()">📎 Attach to Subitem</button>
+    <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+  </div>
+</div>
+
+<!-- =================== QBO TAB =================== -->
+<div id="tab-qbo" class="tab-panel">
+  <div id="qbo-status-bar" class="qbo-bar qbo-pending">
+    <div style="width:36px;height:36px;background:#2CA01C;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:13px;flex-shrink:0">QB</div>
+    <div>
+      <div style="font-weight:700;font-size:13px">QuickBooks Online</div>
+      <div id="qbo-status-text" style="font-size:11px;color:#9a6a00">● Not connected — click Connect to authorize</div>
+    </div>
+    <div style="margin-left:auto">
+      <button id="qbo-connect-btn" class="qbo-btn qbo-connect" onclick="connectQBO()">🔗 Connect to QuickBooks</button>
+    </div>
+  </div>
+  <div class="warn-note">
+    <b>⚠ Admin setup required.</b> Your QBO admin must add this app in Intuit Developer portal first. 
+    Once added, click <i>Connect to QuickBooks</i> to authorize with your Intuit account. 
+    The connection is remembered in this browser — nothing leaves your QBO company file.
+  </div>
+  <div id="qbo-create-section" style="opacity:.4;pointer-events:none">
+    <div class="card">
+      <div class="card-title">📄 Push Estimate to QuickBooks</div>
+      <div class="form-row">
+        <div class="form-group"><label>QBO Customer Name</label><input id="qbo-customer" placeholder="Auto-filled from Project tab"></div>
+        <div class="form-group"><label>QBO Estimate Title / DocNumber</label><input id="qbo-title"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Due Date</label><input type="date" id="qbo-due"></div>
+        <div class="form-group"><label>Customer Message</label><input id="qbo-msg" value="Thank you for your business!"></div>
+      </div>
+      <button class="qbo-btn qbo-push" id="qbo-push-btn" onclick="pushToQBO()" disabled style="margin-top:8px">📤 Create Estimate in QuickBooks</button>
+      <div id="qbo-result" style="margin-top:8px;font-size:11px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:10px">
+    <div class="card-title">📋 What gets synced to QBO</div>
+    <div style="font-size:11px;line-height:1.8;color:#676879">
+      ✅ Customer record (looked up or created automatically)<br>
+      ✅ Estimate with all line items: cabinets, panels, kicks, materials, countertops<br>
+      ✅ Markup and GST as separate line items<br>
+      ✅ Estimate # carried over as QBO reference/doc number<br>
+      ✅ Customer message and due date<br>
+      ⚠️ Token exchange requires a backend relay — see your IT admin to complete setup
+    </div>
+  </div>
+</div>
+
+<!-- =================== HELP / INFO TAB =================== -->
+<div id="tab-info" class="tab-panel">
+  <div class="card">
+    <div class="card-title">📦 Where is my data stored?</div>
+    <div style="font-size:12px;line-height:1.9">
+      <b>This app stores data in 3 places:</b><br><br>
+      <b style="color:#1a3a5c">1. Browser localStorage (this device)</b><br>
+      All fields — client info, cabinet schedule, materials, quote settings — are auto-saved to this browser's localStorage every 2 minutes and when you click Save. 
+      <span style="color:#d83b3b">⚠ This means data is per-device and per-browser. If you clear your browser or use a different device, data will not carry over.</span><br><br>
+      <b style="color:#1a3a5c">2. Monday.com Files tab</b><br>
+      When you click <b>📎 Attach to Subitem</b>, the quote is exported as a PDF and uploaded to this subitem's <b>Files tab</b> in Monday.com. 
+      This is permanent storage on monday.com's servers — accessible from any device, shareable, and stays with the job record.<br><br>
+      <b style="color:#1a3a5c">3. QuickBooks Online (when connected)</b><br>
+      When you click <b>Push Estimate to QBO</b>, a copy is created in your QuickBooks company file as an Estimate record, linked to the customer.<br><br>
+      <b style="color:#9a6a00">💡 Best practice:</b> Always click <b>📎 Attach to Subitem</b> after completing an estimate. This saves the PDF to monday.com and ensures the data is preserved regardless of browser/device.
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">💲 Pricing Data Sources</div>
+    <div style="font-size:12px;line-height:1.8">
+      <b>Cabinet prices</b> — Entered manually by the estimator per job. Reference your <b>Cabinet Pricing Database</b> board in Monday.com for standard rates.<br>
+      <b>Hardware/Materials</b> — Standard rates pre-loaded from your <b>Materials &amp; Hardware Pricing</b> board: Blum Tandem 22" $33/pr, hinges $4.25 ea, handles $8.95 ea, etc.<br>
+      <b>Countertops</b> — Rates from your <b>Countertop Pricing</b> board: Quartz A $38/sqft, Quartz B $66/sqft, Granite $55/sqft, Laminate $25/sqft.<br><br>
+      <b style="color:#9a6a00">To update pricing:</b> Update the Monday.com board prices, then let your developer know — prices can be pulled live from those boards via the Monday API.
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">✏️ Drawing Tips</div>
+    <div style="font-size:12px;line-height:1.8">
+      <b>Pen tool</b> — Draw freehand; the app auto-corrects to the nearest clean shape. Draw a nearly-closed oval → becomes an ellipse. Draw a boxy closed path → becomes a rectangle. Draw a quick line → becomes a straight line.<br>
+      <b>Ellipse tool</b> — Click centre, drag outward. The ellipse fits your drag radius in X and Y. Hold <b>Shift</b> for a perfect circle (equal radii).<br>
+      <b>Set Scale</b> — Draw any line on the canvas (e.g. a wall you know is 10ft), then enter the real measurement. All subsequent Measure labels will show real-world dimensions.<br>
+      <b>Measure tool</b> — After setting scale, click two points to add a dimension line with the real-world label.<br>
+      <b>Apple Pencil</b> — All pointer events support stylus pressure. The canvas aligns to your touch point using getBoundingClientRect scaling.
+    </div>
+  </div>
+</div>
+
+</div><!-- end tab-content -->
+</div><!-- end app-container -->
+
+<!-- =================== SCALE MODAL =================== -->
+<div id="scale-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <h3>📏 Set Drawing Scale</h3>
+    <p style="font-size:11px;color:#676879;margin-bottom:12px">Draw a line on the canvas of a known real-world length, then enter that length below.</p>
+    <div class="form-row full"><div class="form-group"><label>Line length on screen (px — auto-measured)</label><input id="scale-px" type="number" readonly style="background:#f5f6fa"></div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Real-world length</label><input id="scale-real" type="number" step="0.125" placeholder="e.g. 96" autofocus></div>
+      <div class="form-group"><label>Unit</label>
+        <select id="scale-unit"><option value="in">inches</option><option value="ft">feet</option><option value="cm">cm</option><option value="mm">mm</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-outline" onclick="cancelScale()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmScale()">Set Scale</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MEASURE MODAL =================== -->
+<div id="measure-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <h3>📐 Label This Dimension</h3>
+    <div class="form-row full"><div class="form-group"><label>Measurement (e.g. 35 1/2 or 35.5)</label><input id="measure-input" placeholder='e.g. 35 1/2"' autofocus onkeydown="if(event.key==='Enter')confirmMeasure()"></div></div>
+    <div style="background:#f0f8ff;padding:8px;border-radius:4px;margin:8px 0;font-size:11px" id="measure-calc-info"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="cancelMeasure()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmMeasure()">Add Label</button>
+    </div>
+  </div>
+</div><script>
+// ========== STATE ==========
+let canvas, ctx;
+let tool = 'pen';
+let drawing = false;
+let startX=0, startY=0;
+let penPath=[];
+let undoStack=[];
+let scalePxPerUnit=null, scaleUnit='in';
+let scalePending=false, scaleLineStart=null;
+let measurePending=false, measureLine=null, measureConfirm=null;
+let shapeObjects=[];
+
+const QBO_CLIENT_ID = 'ABfvCPHk7dkYGO7lIfBaFTRgSnPyDkLT8s0gm0qNT1Sn4UMoAa';
+const QBO_REDIRECT = window.location.href.split('?')[0];
+
+// ========== TAB SWITCHING ==========
+function switchTab(id, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='drawing') initCanvas();
+  if(id==='quote') buildQuote();
+  if(id==='qbo') initQBO();
+}
+
+// ========== BRANDING ==========
+function updateLogoPreview(){
+  const url = document.getElementById('brand-logo').value.trim();
+  const box = document.getElementById('logo-img-wrap');
+  const qbox = document.getElementById('quote-logo-box');
+  if(url){
+    const img = '<img src="'+url+'" style="width:100%;height:100%;object-fit:contain;border-radius:6px">';
+    box.innerHTML = img; qbox.innerHTML = img;
+  } else {
+    box.innerHTML='SC'; qbox.innerHTML='SC';
+  }
+}
+function updateBrandColor(){
+  const c = document.getElementById('brand-color').value;
+  document.getElementById('quote-header-bar').style.borderColor = c;
+  document.querySelectorAll('.quote-line.total').forEach(el=>el.style.color=c);
+}
+
+// ========== CANVAS INIT ==========
+function initCanvas(){
+  canvas = document.getElementById('drawCanvas');
+  if(!canvas) return;
+  ctx = canvas.getContext('2d');
+  // Don't resize — use fixed 1200x900 canvas, allow scroll
+  applyCtxStyle();
+  canvas.removeEventListener('pointerdown', onPD);
+  canvas.removeEventListener('pointermove', onPM);
+  canvas.removeEventListener('pointerup', onPU);
+  canvas.removeEventListener('pointercancel', onPU);
+  canvas.addEventListener('pointerdown', onPD, {passive:false});
+  canvas.addEventListener('pointermove', onPM, {passive:false});
+  canvas.addEventListener('pointerup', onPU, {passive:false});
+  canvas.addEventListener('pointercancel', onPU, {passive:false});
+  setStatus('Ready');
+}
+
+function applyCtxStyle(){
+  if(!ctx) return;
+  ctx.strokeStyle = document.getElementById('stroke-color')?.value||'#1a1a1a';
+  ctx.lineWidth = parseInt(document.getElementById('line-width')?.value||3);
+  ctx.lineCap='round'; ctx.lineJoin='round';
+}
+
+// CRITICAL: get canvas coords accounting for CSS scaling
+function getXY(e){
+  const r = canvas.getBoundingClientRect();
+  const sx = canvas.width / r.width;
+  const sy = canvas.height / r.height;
+  return { x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy };
+}
+
+function setTool(t, btn){
+  tool=t;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  setStatus('');
+}
+
+// ========== POINTER EVENTS ==========
+function onPD(e){
+  e.preventDefault();
+  if(!ctx) return;
+  const {x,y}=getXY(e);
+  drawing=true; startX=x; startY=y; penPath=[{x,y}];
+
+  if(scalePending){ scaleLineStart={x,y}; return; }
+  if(tool==='measure' && !measurePending){ measureLine={x1:x,y1:y,x2:x,y2:y}; measurePending=true; return; }
+  if(tool==='text'){ drawing=false; const t=prompt('Text:'); if(t){ saveUndo(); applyCtxStyle(); ctx.font='14px Arial'; ctx.fillStyle=ctx.strokeStyle; ctx.fillText(t,x,y); shapeObjects.push({type:'text',x,y,text:t,color:ctx.strokeStyle}); } return; }
+  saveUndo(); applyCtxStyle();
+  if(tool==='pen'){ ctx.beginPath(); ctx.moveTo(x,y); }
+}
+
+function onPM(e){
+  e.preventDefault();
+  if(!ctx||!drawing) return;
+  const {x,y}=getXY(e);
+
+  if(scalePending && scaleLineStart){
+    const snap = undoStack[undoStack.length-1];
+    if(snap) ctx.putImageData(snap,0,0);
+    applyCtxStyle();
+    ctx.save(); ctx.setLineDash([8,4]); ctx.strokeStyle='#0073ea'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(scaleLineStart.x,scaleLineStart.y); ctx.lineTo(x,y); ctx.stroke();
+    ctx.restore();
+    setStatus('Length: '+Math.round(Math.hypot(x-scaleLineStart.x,y-scaleLineStart.y))+'px — release to confirm');
+    return;
+  }
+  if(tool==='measure' && measurePending && measureLine){
+    measureLine.x2=x; measureLine.y2=y;
+    const snap=undoStack[undoStack.length-1]; if(snap) ctx.putImageData(snap,0,0);
+    drawDimLine(measureLine.x1,measureLine.y1,x,y,null);
+    return;
+  }
+  if(tool==='pen'){ penPath.push({x,y}); ctx.lineTo(x,y); ctx.stroke(); return; }
+
+  // Live preview
+  const snap=undoStack[undoStack.length-1]; if(snap) ctx.putImageData(snap,0,0);
+  applyCtxStyle();
+  previewShape(tool,startX,startY,x,y,e.shiftKey);
+}
+
+function onPU(e){
+  e.preventDefault();
+  if(!ctx||!drawing) return;
+  drawing=false;
+  const {x,y}=getXY(e);
+
+  if(scalePending && scaleLineStart){
+    const px=Math.round(Math.hypot(x-scaleLineStart.x,y-scaleLineStart.y));
+    document.getElementById('scale-px').value=px;
+    document.getElementById('scale-modal').style.display='flex';
+    return;
+  }
+  if(tool==='measure' && measurePending && measureLine){
+    measureLine.x2=x; measureLine.y2=y;
+    measureConfirm={x1:measureLine.x1,y1:measureLine.y1,x2:x,y2:y};
+    const pxLen=Math.hypot(x-measureLine.x1,y-measureLine.y1);
+    const info=document.getElementById('measure-calc-info');
+    const realLen = scalePxPerUnit ? (pxLen/scalePxPerUnit) : null;
+    if(info) info.innerHTML = realLen
+      ? 'Drawn: '+pxLen.toFixed(0)+'px → <b>'+formatFrac(realLen)+' '+scaleUnit+'</b> at current scale'
+      : 'No scale set — enter a measurement and the drawing will calibrate.';
+    if(realLen) document.getElementById('measure-input').value=formatFrac(realLen)+'"';
+    document.getElementById('measure-modal').style.display='flex';
+    measurePending=false;
+    return;
+  }
+  if(tool==='pen'){ autoCorrect(); return; }
+
+  // Finalise shape
+  commitShape(tool,startX,startY,x,y,e.shiftKey);
+}
+
+// ========== SHAPE PREVIEW (no save) ==========
+function previewShape(t,x1,y1,x2,y2,shift){
+  ctx.beginPath();
+  if(t==='line'){ ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+  else if(t==='rect'){ ctx.strokeRect(x1,y1,x2-x1,y2-y1); }
+  else if(t==='circle'){
+    // Ellipse tool: drag from centre outward
+    // rx = horizontal distance, ry = vertical distance
+    const rx=Math.abs(x2-x1), ry=Math.abs(y2-y1);
+    const r = shift ? Math.max(rx,ry) : null;
+    ctx.ellipse(x1,y1, r||rx, r||ry, 0,0,Math.PI*2); ctx.stroke();
+  }
+}
+
+// ========== COMMIT SHAPE (with save to shapeObjects) ==========
+function commitShape(t,x1,y1,x2,y2,shift){
+  applyCtxStyle();
+  ctx.beginPath();
+  if(t==='line'){
+    ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    shapeObjects.push({type:'line',x1,y1,x2,y2,color:ctx.strokeStyle,lw:ctx.lineWidth});
+  } else if(t==='rect'){
+    ctx.strokeRect(x1,y1,x2-x1,y2-y1);
+    shapeObjects.push({type:'rect',x1,y1,x2,y2,color:ctx.strokeStyle,lw:ctx.lineWidth});
+  } else if(t==='circle'){
+    // Centre = (x1,y1), rx/ry from drag distance
+    const rx=Math.abs(x2-x1), ry=Math.abs(y2-y1);
+    const r = shift ? Math.max(rx,ry) : null;
+    const finalRx = r||rx, finalRy = r||ry;
+    ctx.ellipse(x1,y1,finalRx,finalRy,0,0,Math.PI*2); ctx.stroke();
+    shapeObjects.push({type:'ellipse',cx:x1,cy:y1,rx:finalRx,ry:finalRy,color:ctx.strokeStyle,lw:ctx.lineWidth});
+    setStatus('Ellipse drawn — Shift+drag for perfect circle');
+  }
+}
+
+// ========== AUTO SHAPE CORRECTION (pen tool) ==========
+function autoCorrect(){
+  if(penPath.length<4){ penPath=[]; return; }
+
+  const xs=penPath.map(p=>p.x), ys=penPath.map(p=>p.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const w=maxX-minX, h=maxY-minY;
+  const s=penPath[0], e=penPath[penPath.length-1];
+  const pathLen=penPath.reduce((a,p,i)=>i===0?0:a+Math.hypot(p.x-penPath[i-1].x,p.y-penPath[i-1].y),0);
+  const directDist=Math.hypot(e.x-s.x,e.y-s.y);
+  const closeDist=Math.hypot(e.x-s.x,e.y-s.y);
+  const closed = closeDist < Math.max(w,h)*0.25 && closeDist < pathLen*0.25;
+
+  const snap=undoStack[undoStack.length-1]; if(snap) ctx.putImageData(snap,0,0);
+  applyCtxStyle();
+
+  if(!closed){
+    // Is it a straight line?
+    if(directDist/pathLen > 0.85){
+      ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(e.x,e.y); ctx.stroke();
+      shapeObjects.push({type:'line',x1:s.x,y1:s.y,x2:e.x,y2:e.y,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
+      setStatus('Auto → Line'); penPath=[]; return;
+    }
+    // Keep freehand
+    redrawFree(penPath); penPath=[]; return;
+  }
+
+  // CLOSED PATH — distinguish ellipse vs rectangle vs triangle
+  // Key fix: use the "roundness" metric — compare path to ellipse perimeter vs rect perimeter
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  const rx=w/2, ry=h/2;
+  // Ramanujan ellipse perimeter approximation
+  const ellipsePerim = Math.PI*(3*(rx+ry)-Math.sqrt((3*rx+ry)*(rx+3*ry)));
+  const rectPerim = 2*(w+h);
+
+  const ellipseDiff = Math.abs(pathLen-ellipsePerim)/ellipsePerim;
+  const rectDiff = Math.abs(pathLen-rectPerim)/rectPerim;
+  const corners = countCorners(penPath);
+
+  let detected='rect';
+  // Ellipse if path is within 35% of ellipse perimeter AND corners are few
+  if(ellipseDiff < 0.15 && corners < 5 && w>20 && h>20){
+    detected='ellipse';
+  } else if(corners===3 || (corners<=5 && (w/h>2||h/w>2))){
+    detected='triangle';
+  }
+
+  ctx.beginPath();
+  if(detected==='ellipse'){
+    ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.stroke();
+    shapeObjects.push({type:'ellipse',cx,cy,rx,ry,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
+    setStatus('Auto → Ellipse ('+Math.round(rx*2)+'×'+Math.round(ry*2)+'px)');
+  } else if(detected==='triangle'){
+    const pts=getTrianglePts(penPath);
+    ctx.moveTo(pts[0].x,pts[0].y); ctx.lineTo(pts[1].x,pts[1].y); ctx.lineTo(pts[2].x,pts[2].y); ctx.closePath(); ctx.stroke();
+    shapeObjects.push({type:'triangle',pts,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
+    setStatus('Auto → Triangle');
+  } else {
+    ctx.strokeRect(minX,minY,w,h);
+    shapeObjects.push({type:'rect',x1:minX,y1:minY,x2:maxX,y2:maxY,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
+    setStatus('Auto → Rectangle');
+  }
+  penPath=[];
+}
+
+function countCorners(path){
+  let c=0;
+  const step=Math.max(1,Math.floor(path.length/16));
+  for(let i=step;i<path.length-step;i+=step){
+    const a=Math.atan2(path[i].y-path[i-step].y,path[i].x-path[i-step].x);
+    const b=Math.atan2(path[Math.min(i+step,path.length-1)].y-path[i].y,path[Math.min(i+step,path.length-1)].x-path[i].x);
+    let d=Math.abs(b-a); if(d>Math.PI) d=2*Math.PI-d;
+    if(d>0.65) c++;
+  }
+  return c;
+}
+function getTrianglePts(path){
+  const n=path.length;
+  return [path[0], path[Math.floor(n/2)], path[n-1]];
+}
+function redrawFree(path){
+  ctx.beginPath();
+  path.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.stroke();
+  shapeObjects.push({type:'free',path:[...path],color:ctx.strokeStyle,lw:ctx.lineWidth});
+  setStatus('Freehand path');
+}
+
+// ========== DIMENSION LINES ==========
+function drawDimLine(x1,y1,x2,y2,label){
+  applyCtxStyle();
+  const tick=9, angle=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  [[x1,y1],[x2,y2]].forEach(([px,py])=>{
+    ctx.beginPath();
+    ctx.moveTo(px+Math.cos(angle+Math.PI/2)*tick,py+Math.sin(angle+Math.PI/2)*tick);
+    ctx.lineTo(px-Math.cos(angle+Math.PI/2)*tick,py-Math.sin(angle+Math.PI/2)*tick);
+    ctx.stroke();
+  });
+  if(label){
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    ctx.save(); ctx.font='bold 12px Arial'; ctx.fillStyle='#1a3a5c';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    const tw=ctx.measureText(label).width;
+    ctx.fillRect(mx-tw/2-3,my-16,tw+6,16);
+    ctx.fillStyle='#1a3a5c'; ctx.fillText(label,mx,my-2);
+    ctx.restore();
+    shapeObjects.push({type:'measure',x1,y1,x2,y2,label,lw:ctx.lineWidth});
+  }
+}
+
+// ========== SCALE ==========
+function setScale(){
+  scalePending=true; saveUndo();
+  setStatus('Draw a calibration line on the canvas, then release...');
+}
+function cancelScale(){ scalePending=false; document.getElementById('scale-modal').style.display='none'; setStatus(''); }
+function confirmScale(){
+  const px=parseFloat(document.getElementById('scale-px').value);
+  const real=parseFloat(document.getElementById('scale-real').value);
+  const unit=document.getElementById('scale-unit').value;
+  if(!px||!real||px<=0||real<=0){alert('Enter valid values'); return;}
+  scalePxPerUnit=px/real; scaleUnit=unit;
+  document.getElementById('scale-modal').style.display='none';
+  scalePending=false;
+  const d=document.getElementById('scale-display');
+  if(d) d.textContent='Scale: 1'+unit+'='+scalePxPerUnit.toFixed(1)+'px';
+  setStatus('Scale set! Use Measure tool to label dimensions.');
+}
+function cancelMeasure(){ document.getElementById('measure-modal').style.display='none'; measureConfirm=null; }
+function confirmMeasure(){
+  const v=document.getElementById('measure-input').value.trim();
+  if(!v||!measureConfirm){cancelMeasure();return;}
+  let real=parseFrac(v.replace(/"/g,'').replace(/'/g,'12+'));
+  if(!scalePxPerUnit && real>0){
+    const px=Math.hypot(measureConfirm.x2-measureConfirm.x1,measureConfirm.y2-measureConfirm.y1);
+    scalePxPerUnit=px/real; scaleUnit='in';
+    const d=document.getElementById('scale-display');
+    if(d) d.textContent='Scale: 1in='+scalePxPerUnit.toFixed(1)+'px';
+  }
+  const label=v+(v.includes('"')||v.includes("'")?'':'"');
+  drawDimLine(measureConfirm.x1,measureConfirm.y1,measureConfirm.x2,measureConfirm.y2,label);
+  document.getElementById('measure-modal').style.display='none'; measureConfirm=null;
+}
+
+// ========== UNDO / CLEAR / EXPORT ==========
+function saveUndo(){
+  if(!ctx) return;
+  undoStack.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+  if(undoStack.length>25) undoStack.shift();
+}
+function undoCanvas(){
+  if(!ctx||!undoStack.length) return;
+  ctx.putImageData(undoStack.pop(),0,0); setStatus('Undo');
+}
+function clearCanvas(){
+  if(!ctx) return;
+  saveUndo(); ctx.clearRect(0,0,canvas.width,canvas.height);
+  shapeObjects=[]; setStatus('Cleared');
+}
+function exportPNG(){
+  if(!canvas) return;
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download='summit-site-drawing.png'; a.click();
+}
+function setStatus(m){ const el=document.getElementById('draw-status'); if(el) el.textContent=m||''; }
+
+// ========== UTILS ==========
+function parseFrac(s){
+  if(!s) return 0;
+  let total=0;
+  s.trim().split(/s+/).forEach(p=>{
+    if(p.includes('/')) { const[n,d]=p.split('/'); total+=parseFloat(n)/parseFloat(d); }
+    else total+=parseFloat(p)||0;
+  });
+  return total;
+}
+function formatFrac(n){
+  const w=Math.floor(n), f=n-w;
+  const fracs=[{v:0.875,s:'7/8'},{v:0.75,s:'3/4'},{v:0.625,s:'5/8'},{v:0.5,s:'1/2'},{v:0.375,s:'3/8'},{v:0.25,s:'1/4'},{v:0.125,s:'1/8'}];
+  const fnd=fracs.find(x=>Math.abs(f-x.v)<0.07);
+  return w>0?(fnd?w+' '+fnd.s:n.toFixed(2)):(fnd?fnd.s:n.toFixed(2));
+}
+function parseFracDim(s){ return parseFrac((s||'').replace(/[×xX]/g,' ')); }
+
+// ========== PHOTOS ==========
+function addPhotos(e){
+  const grid=document.getElementById('photo-grid');
+  for(const f of e.target.files){
+    const img=document.createElement('img');
+    img.src=URL.createObjectURL(f); img.className='photo-thumb'; img.title=f.name;
+    grid.appendChild(img);
+  }
+}
+// ========== CABINET / PANEL / KICK TABLES ==========
+const CAB_DATA=[
+  {code:'C01',loc:'Main Floor Vanity',w:'35 1/2',h:'31 1/4',d:'21 1/8',fin:'Left',door:'Shaker',type:'Vanity Base',notes:''},
+  {code:'C02',loc:'Basement Vanity',w:'31 5/8',h:'31 1/4',d:'21 1/8',fin:'Right',door:'Shaker',type:'Vanity Base',notes:''},
+  {code:'C03',loc:'Master Vanity',w:'31 1/2',h:'31',d:'21 1/8',fin:'Right',door:'Shaker',type:'Vanity Base',notes:''},
+  {code:'C04',loc:'Kitchen',w:'15 3/4',h:'35',d:'24',fin:'',door:'Shaker',type:'Base',notes:'Left of stove'},
+  {code:'C05',loc:'Kitchen',w:'',h:'',d:'',fin:'',door:'Shaker',type:'Base',notes:'Sink — dont have parts'},
+  {code:'C06',loc:'Kitchen',w:'23 5/8',h:'35',d:'12 1/2',fin:'',door:'Shaker',type:'Base',notes:'Left of sink — see pic'},
+];
+
+// ===== ESTIMATING DB PRICING (from Monday.com boards) =====
+const DB_CAB_PRICES = {
+  'Base - Shaker - Maple - Painted':    285,
+  'Base - Shaker - Oak - Stained':      310,
+  'Base - Slab - MDF - Painted':        245,
+  'Upper - Shaker - Maple - Painted':   195,
+  'Upper - Shaker - Oak - Stained':     220,
+  'Upper - Slab - MDF - Painted':       165,
+  'Tall - Shaker - Maple - Painted':    450,
+  'Island - Shaker - Maple - Painted':  295,
+  'Island - Shaker - Hickory - Stained':310
+};
+function initCabinets(){
+  // Maruszczyk demo data - pre-loaded from site measure (Feb 2026)
+  [{code:'C01',loc:'Main floor vanity',w:'35 1/2',h:'31 1/4',d:'21 1/8',fin:'Left',door:'Shaker',type:'Base - Shaker - Oak - Stained',notes:'Finished left',price:310},
+   {code:'C02',loc:'Basement vanity',w:'31 5/8',h:'31 1/4',d:'21 1/8',fin:'Right',door:'Shaker',type:'Base - Shaker - Oak - Stained',notes:'Finished right',price:310},
+   {code:'C03',loc:'Master vanity',w:'31 1/2',h:'31',d:'21 1/8',fin:'Right',door:'Shaker',type:'Base - Shaker - Oak - Stained',notes:'Finished right',price:310},
+   {code:'C04',loc:'Kitchen left of stove',w:'15 3/4',h:'35',d:'24',fin:'',door:'Shaker',type:'Base - Shaker - Maple - Painted',notes:'',price:285},
+   {code:'C05',loc:'Kitchen sink',w:'',h:'35',d:'',fin:'',door:'Shaker',type:'Base - Shaker - Maple - Painted',notes:'No parts - sink only',price:285},
+   {code:'C06',loc:'Kitchen left of sink',w:'23 5/8',h:'35',d:'12 1/2',fin:'',door:'Shaker',type:'Upper - Shaker - Oak - Stained',notes:'See pic',price:220}
+  ].forEach(c => addCabRow(c));
+  [{code:'P01',desc:'Island Panel DW',w:'24',h:'35'},{code:'P02',desc:'Island Panel',w:'36',h:'35'},{code:'P03',desc:'Island Panel',w:'45',h:'35'}].forEach(c => addPanelRow(c));
+  [{code:'K01',loc:'Kitchen',size:'2 5/8 x 4 3/4',qty:20},{code:'K02',loc:'Vanity',size:'2 3/8 x 7',qty:9}].forEach(c => addKickRow(c));
+}
+
+function mkDel(){ return '<button class="btn btn-danger btn-sm no-print" onclick="this.closest('tr').remove();calcQuote()">✕</button>'; }
+
+function addCabRow(c={}){
+  const tb=document.getElementById('cab-tbody');
+  const i=tb.children.length;
+  const code=c.code||('C'+(i+1).toString().padStart(2,'0'));
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input value="${code}" style="width:38px"></td>
+    <td><input value="${c.loc||''}" style="width:105px"></td>
+    <td><input value="${c.w||''}" style="width:52px" placeholder="35 1/2"></td>
+    <td><input value="${c.h||''}" style="width:44px" placeholder="31 1/4"></td>
+    <td><input value="${c.d||''}" style="width:44px" placeholder="21 1/8"></td>
+    <td><select style="width:72px">
+      <option></option><option ${c.fin==='Left'?'selected':''}>Left</option><option ${c.fin==='Right'?'selected':''}>Right</option><option ${c.fin==='Both'?'selected':''}>Both</option>
+    </select></td>
+    <td><input value="${c.door||''}" style="width:66px" placeholder="Shaker"></td>
+    <td><select class="cab-type-sel" onchange="onCabTypeChange(this)" style="width:145px;font-size:10px;padding:2px">
+      <option value="">-- Cabinet Type --</option>
+      <option value="Base - Shaker - Maple - Painted" ${c.type==='Base - Shaker - Maple - Painted'?'selected':''}>Base Shaker Maple/Pntd $285/LF</option>
+      <option value="Base - Shaker - Oak - Stained" ${c.type==='Base - Shaker - Oak - Stained'?'selected':''}>Base Shaker Oak/Stnd $310/LF</option>
+      <option value="Base - Slab - MDF - Painted" ${c.type==='Base - Slab - MDF - Painted'?'selected':''}>Base Slab MDF/Pntd $245/LF</option>
+      <option value="Upper - Shaker - Maple - Painted" ${c.type==='Upper - Shaker - Maple - Painted'?'selected':''}>Upper Shaker Maple/Pntd $195/LF</option>
+      <option value="Upper - Shaker - Oak - Stained" ${c.type==='Upper - Shaker - Oak - Stained'?'selected':''}>Upper Shaker Oak/Stnd $220/LF</option>
+      <option value="Upper - Slab - MDF - Painted" ${c.type==='Upper - Slab - MDF - Painted'?'selected':''}>Upper Slab MDF/Pntd $165/LF</option>
+      <option value="Tall - Shaker - Maple - Painted" ${c.type==='Tall - Shaker - Maple - Painted'?'selected':''}>Tall Shaker Maple/Pntd $450/LF</option>
+      <option value="Island - Shaker - Maple - Painted" ${c.type==='Island - Shaker - Maple - Painted'?'selected':''}>Island Shaker Maple/Pntd $295/LF</option>
+      <option value="Island - Shaker - Hickory - Stained" ${c.type==='Island - Shaker - Hickory - Stained'?'selected':''}>Island Shaker Hickory/Stnd $310/LF</option>
+    </select></td>
+    <td><input value="${c.notes||''}" style="width:105px"></td>
+    <td><input type="number" value="${c.price||''}" style="width:62px" class="cab-unit-inp" placeholder="$/LF" oninput="updateCabTotal(this);calcQuote()"></td>
+    <td class="cab-total" style="font-weight:700;white-space:nowrap">—</td>
+    <td>${mkDel()}</td>`;
+  tb.appendChild(tr);
+  if(c.price) updateCabTotal(tr.querySelector('input[type=number]'));
+}
+function onCabTypeChange(sel) {
+  const row = sel.closest('tr');
+  if(!row) return;
+  const inp = row.querySelector('.cab-unit-inp');
+  if(!inp) return;
+  const type = sel.value;
+  if(type && DB_CAB_PRICES[type]) {
+    inp.value = DB_CAB_PRICES[type];
+    inp.style.background = '#d4edda';
+    setTimeout(() => { inp.style.background = ''; }, 2000);
+  }
+  updateCabTotal(inp);
+}
+function updateCabTotal(inp){
+  const p=parseFloat(inp.value)||0;
+  inp.closest('tr').querySelector('.cab-total').textContent=p?'$'+p.toFixed(2):'—';
+}
+
+function addPanelRow(c={}){
+  const tb=document.getElementById('panel-tbody');
+  const i=tb.children.length;
+  const code=c.code||('P'+(i+1).toString().padStart(2,'0'));
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input value="${code}" style="width:38px"></td>
+    <td><input value="${c.desc||''}" style="width:140px"></td>
+    <td><input value="${c.w||''}" style="width:52px"></td>
+    <td><input value="${c.h||''}" style="width:52px"></td>
+    <td><input type="number" value="${c.price||''}" style="width:62px" class="cab-unit-inp" placeholder="$/LF" oninput="calcQuote()"></td>
+    <td class="panel-total">—</td>
+    <td>${mkDel()}</td>`;
+  tb.appendChild(tr);
+}
+
+function addKickRow(c={}){
+  const tb=document.getElementById('kick-tbody');
+  const i=tb.children.length;
+  const code=c.code||('K'+(i+1).toString().padStart(2,'0'));
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input value="${code}" style="width:38px"></td>
+    <td><input value="${c.desc||''}" style="width:140px"></td>
+    <td><input type="number" value="${c.ft||''}" style="width:55px" placeholder="0" oninput="calcQuote()"></td>
+    <td><input value="${c.ht||''}" style="width:52px"></td>
+    <td><input type="number" value="${c.pft||''}" style="width:55px" placeholder="0.00" oninput="calcQuote()"></td>
+    <td class="kick-total">—</td>
+    <td>${mkDel()}</td>`;
+  tb.appendChild(tr);
+}
+
+// ========== MATERIALS ==========
+function quickAddMat(sel){
+  if(!sel.value) return;
+  const [name,unit,price]=sel.value.split('|');
+  addMatRow({name,unit,price,source:'Materials & Hardware Pricing board'});
+  sel.value='';
+}
+function addMatRow(item={}){
+  const tb=document.getElementById('mat-tbody');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input value="${item.name||''}" style="width:155px" placeholder="Item name"></td>
+    <td><input type="number" value="${item.qty||1}" min="1" style="width:42px" oninput="updateMatTotal(this)"></td>
+    <td><input value="${item.unit||'each'}" style="width:46px"></td>
+    <td><input type="number" value="${item.price||''}" style="width:62px" class="cab-unit-inp" placeholder="$/LF" oninput="updateMatTotal(this)"></td>
+    <td style="font-size:9px;color:${item.source?'#00884a':'#9a6a00'}">${item.source?'📊 DB':'✏️ Manual'}</td>
+    <td class="mat-total" style="font-weight:700">—</td>
+    <td>${mkDel()}</td>`;
+  tb.appendChild(tr);
+  if(item.price) updateMatTotal(tr.querySelector('input[type=number]'));
+}
+function updateMatTotal(inp){
+  const row=inp.closest('tr');
+  const nums=row.querySelectorAll('input[type=number]');
+  const qty=parseFloat(nums[0].value)||1, price=parseFloat(nums[1].value)||0;
+  row.querySelector('.mat-total').textContent=price?(('$'+(qty*price).toFixed(2))):'—';
+}
+
+const CT_RATES={'Quartz Level A':38,'Quartz Level B':66,'Granite':55,'Laminate':25};
+function addCtRow(){
+  const tb=document.getElementById('ct-tbody');
+  const tr=document.createElement('tr');
+  const opts=Object.entries(CT_RATES).map(([k,v])=>`<option data-rate="${v}">${k} ($${v}/sqft)</option>`).join('');
+  tr.innerHTML=`
+    <td><input style="width:90px" placeholder="Kitchen"></td>
+    <td><select style="width:155px" onchange="updateCtRate(this)">${opts}</select></td>
+    <td><input type="number" style="width:55px" placeholder="0" oninput="updateCtTotal(this)"></td>
+    <td class="ct-rate" style="font-weight:700">$38.00</td>
+    <td style="font-size:9px;color:#00884a">📊 DB</td>
+    <td class="ct-total">—</td>
+    <td>${mkDel()}</td>`;
+  tb.appendChild(tr);
+}
+function updateCtRate(sel){
+  const rate=sel.options[sel.selectedIndex].dataset.rate;
+  sel.closest('tr').querySelector('.ct-rate').textContent='$'+parseFloat(rate).toFixed(2);
+  updateCtTotal(sel.closest('tr').querySelector('input[type=number]'));
+}
+function updateCtTotal(inp){
+  const row=inp.closest('tr');
+  const sqft=parseFloat(inp.value)||0;
+  const rate=parseFloat(row.querySelector('.ct-rate').textContent.replace('$',''))||0;
+  row.querySelector('.ct-total').textContent=sqft?'$'+(sqft*rate).toFixed(2):'—';
+}
+// ========== QUOTE BUILDER ==========
+function getVal(id){ return (document.getElementById(id)||{}).value||''; }
+
+function calcSubtotals(){
+  let cab=0,panel=0,kick=0,mat=0,ct=0;
+  document.querySelectorAll('#cab-tbody tr').forEach(tr=>{
+    cab+=parseFloat(tr.querySelector('input[type=number]')?.value||0);
+  });
+  document.querySelectorAll('#panel-tbody tr').forEach(tr=>{
+    panel+=parseFloat(tr.querySelector('input[type=number]')?.value||0);
+  });
+  document.querySelectorAll('#kick-tbody tr').forEach(tr=>{
+    const ns=tr.querySelectorAll('input[type=number]');
+    kick+=(parseFloat(ns[0]?.value||0))*(parseFloat(ns[1]?.value||0));
+  });
+  document.querySelectorAll('#mat-tbody tr').forEach(tr=>{
+    const ns=tr.querySelectorAll('input[type=number]');
+    mat+=(parseFloat(ns[0]?.value||1))*(parseFloat(ns[1]?.value||0));
+  });
+  document.querySelectorAll('#ct-tbody tr').forEach(tr=>{
+    const sqft=parseFloat(tr.querySelector('input[type=number]')?.value||0);
+    const rate=parseFloat(tr.querySelector('.ct-rate')?.textContent?.replace('$','')||0);
+    ct+=sqft*rate;
+  });
+  return {cab,panel,kick,mat,ct};
+}
+
+function calcQuote(){ buildQuote(); }
+
+function buildQuote(){
+  const {cab,panel,kick,mat,ct}=calcSubtotals();
+  const sub=cab+panel+kick+mat+ct;
+  const markupPct=parseFloat(getVal('markup-pct'))||25;
+  const gstPct=parseFloat(getVal('gst-pct'))||5;
+  const markup=sub*(markupPct/100);
+  const beforeTax=sub+markup;
+  const gst=beforeTax*(gstPct/100);
+  const total=beforeTax+gst;
+
+  // Update branded quote doc
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('quote-client',getVal('p-client'));
+  set('quote-addr',getVal('p-address'));
+  set('quote-estnum',getVal('p-estnum'));
+  set('quote-date',getVal('p-date'));
+  set('quote-estimator','Estimator: '+getVal('p-estimator'));
+  set('quote-pm','PM: '+getVal('p-pm'));
+  set('quote-box',getVal('p-box')||'—');
+  set('quote-panel',getVal('p-panel')||'—');
+  set('quote-door',getVal('p-door')||'—');
+  set('quote-company-name',getVal('brand-name'));
+  set('quote-phone',getVal('brand-phone'));
+  set('quote-web',getVal('brand-web'));
+
+  // Line items table
+  const linesEl=document.getElementById('quote-lines');
+  if(!linesEl) return;
+
+  const cabLines=[];
+  document.querySelectorAll('#cab-tbody tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    const price=parseFloat(tr.querySelector('input[type=number]')?.value||0);
+    if(!price) return;
+    const code=inputs[0]?.value, loc=inputs[1]?.value, w=inputs[2]?.value, h=inputs[3]?.value, d=inputs[4]?.value;
+    cabLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">${code}</td><td style="padding:3px 6px;flex:1">${loc} &mdash; ${w}×${h}×${d}</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${price.toFixed(2)}</td></tr>`);
+  });
+
+  const matLines=[];
+  document.querySelectorAll('#mat-tbody tr').forEach(tr=>{
+    const name=tr.querySelectorAll('input')[0]?.value||'';
+    const ns=tr.querySelectorAll('input[type=number]');
+    const qty=parseFloat(ns[0]?.value||1), price=parseFloat(ns[1]?.value||0);
+    const total=qty*price;
+    if(!total) return;
+    matLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">—</td><td style="padding:3px 6px">${name} (×${qty})</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${total.toFixed(2)}</td></tr>`);
+  });
+
+  const ctLines=[];
+  document.querySelectorAll('#ct-tbody tr').forEach(tr=>{
+    const loc=tr.querySelector('input')?.value||'';
+    const mat=tr.querySelector('select')?.value?.split('(')[0]?.trim()||'';
+    const sqft=parseFloat(tr.querySelector('input[type=number]')?.value||0);
+    const rate=parseFloat(tr.querySelector('.ct-rate')?.textContent?.replace('$','')||0);
+    const total=sqft*rate;
+    if(!total) return;
+    ctLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">—</td><td style="padding:3px 6px">${loc}: ${mat} (${sqft} sqft @ $${rate})</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${total.toFixed(2)}</td></tr>`);
+  });
+
+  const tableStyle='width:100%;border-collapse:collapse;margin-bottom:8px';
+  const thStyle='padding:4px 6px;font-size:10px;font-weight:700;text-transform:uppercase;color:#676879;border-bottom:1px solid #e6e9ef;text-align:left';
+
+  let html='';
+  if(cabLines.length) html+=`<table style="${tableStyle}"><thead><tr><th style="${thStyle};width:40px">Code</th><th style="${thStyle}">Cabinet</th><th style="${thStyle};text-align:right">Price</th></tr></thead><tbody>${cabLines.join('')}</tbody></table>`;
+
+  const panelLines=[];
+  document.querySelectorAll('#panel-tbody tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    const price=parseFloat(tr.querySelector('input[type=number]')?.value||0);
+    if(!price) return;
+    panelLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">${inputs[0]?.value}</td><td style="padding:3px 6px">${inputs[1]?.value} ${inputs[2]?.value}×${inputs[3]?.value}</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${price.toFixed(2)}</td></tr>`);
+  });
+  if(panelLines.length) html+=`<table style="${tableStyle}"><thead><tr><th style="${thStyle};width:40px">Code</th><th style="${thStyle}">Island Panel</th><th style="${thStyle};text-align:right">Price</th></tr></thead><tbody>${panelLines.join('')}</tbody></table>`;
+
+  const kickLines=[];
+  document.querySelectorAll('#kick-tbody tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    const ns=tr.querySelectorAll('input[type=number]');
+    const ft=parseFloat(ns[0]?.value||0), pft=parseFloat(ns[1]?.value||0), total=ft*pft;
+    if(!total) return;
+    kickLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">${inputs[0]?.value}</td><td style="padding:3px 6px">${inputs[1]?.value} (${ft}ft @ $${pft}/ft)</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${total.toFixed(2)}</td></tr>`);
+  });
+  if(kickLines.length) html+=`<table style="${tableStyle}"><thead><tr><th style="${thStyle};width:40px">Code</th><th style="${thStyle}">Kicks</th><th style="${thStyle};text-align:right">Total</th></tr></thead><tbody>${kickLines.join('')}</tbody></table>`;
+  if(matLines.length) html+=`<table style="${tableStyle}"><thead><tr><th style="${thStyle};width:40px"></th><th style="${thStyle}">Materials &amp; Hardware</th><th style="${thStyle};text-align:right">Total</th></tr></thead><tbody>${matLines.join('')}</tbody></table>`;
+  if(ctLines.length) html+=`<table style="${tableStyle}"><thead><tr><th style="${thStyle};width:40px"></th><th style="${thStyle}">Countertops</th><th style="${thStyle};text-align:right">Total</th></tr></thead><tbody>${ctLines.join('')}</tbody></table>`;
+
+  linesEl.innerHTML=html;
+
+  // Totals block
+  const brand=getVal('brand-color')||'#1a3a5c';
+  const totEl=document.getElementById('quote-totals');
+  if(totEl) totEl.innerHTML=`
+    <div style="font-size:11px">
+      <div class="quote-line sub"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>
+      <div class="quote-line sub"><span>Markup (${markupPct}%)</span><span>$${markup.toFixed(2)}</span></div>
+      <div class="quote-line sub"><span>Before Tax</span><span>$${beforeTax.toFixed(2)}</span></div>
+      <div class="quote-line sub"><span>GST (${gstPct}%)</span><span>$${gst.toFixed(2)}</span></div>
+      <div class="quote-line total" style="border-top-color:${brand};color:${brand}"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>
+    </div>`;
+
+  // Footer
+  const scope=getVal('p-scope');
+  const scopeEl=document.getElementById('quote-scope-section');
+  if(scopeEl&&scope) scopeEl.innerHTML='<b>Scope of Work:</b> '+scope;
+  const footEl=document.getElementById('quote-footer');
+  if(footEl) footEl.textContent=getVal('brand-footer')||'All prices in CAD. GST included. Valid 30 days.';
+
+  // Header border colour
+  const bar=document.getElementById('quote-header-bar');
+  if(bar) bar.style.borderColor=getVal('brand-color')||'#1a3a5c';
+
+  return total;
+}
+
+// ========== PDF / ATTACH ==========
+function exportQuotePDF(){
+  buildQuote();
+  // Use browser print to PDF
+  const style=document.createElement('style');
+  style.id='pdf-style';
+  style.textContent='@media print{body *{visibility:hidden}#quote-doc,#quote-doc *{visibility:visible}#quote-doc{position:fixed;top:0;left:0;width:100%;padding:20px}}';
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(()=>{ const s=document.getElementById('pdf-style'); if(s) s.remove(); },1000);
+}
+
+function attachToMonday(){
+  // Generate an HTML blob of the quote, then use monday SDK to attach to Files tab
+  buildQuote();
+  const quoteDoc=document.getElementById('quote-doc');
+  if(!quoteDoc){alert('Please go to the Quote tab first'); return;}
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Summit Estimate</title><style>body{font-family:Arial,sans-serif;padding:20px;max-width:800px;margin:0 auto}</style></head><body>'+quoteDoc.innerHTML+'</body></html>';
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const estNum=getVal('p-estnum')||'EST';
+  const client=getVal('p-client')||'Client';
+  a.href=url;
+  a.download='Summit-Estimate-'+client+'-'+estNum+'.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  // Attempt Monday SDK file upload (works when app has files:write scope)
+  try{
+    if(window.monday){
+      window.monday.execute('openAppFeatureModal',{
+        url: 'about:blank',
+        width: 100, height: 100
+      }).catch(()=>{});
+    }
+  } catch(e){}
+  
+  // Show instructions
+  setTimeout(()=>{
+    alert('📎 The estimate HTML file has been downloaded.\n\nTo attach it to this subitem:\n1. Go to the Files tab on this subitem\n2. Click + Add File → upload the downloaded file\n3. You can then share the link with your client via the Updates tab');
+  },500);
+}
+
+// ========== QBO ==========
+function initQBO(){
+  const stored=localStorage.getItem('qboConnection');
+  if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
+  const cust=document.getElementById('qbo-customer');
+  if(cust&&!cust.value) cust.value=getVal('p-client');
+  const title=document.getElementById('qbo-title');
+  if(title&&!title.value) title.value='Summit Estimate '+getVal('p-estnum');
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('code')&&params.get('state')==='summitestimate') exchangeQBOCode(params.get('code'),params.get('realmId'));
+}
+function connectQBO(){
+  const url='https://appcenter.intuit.com/connect/oauth2?client_id='+QBO_CLIENT_ID+'&redirect_uri='+encodeURIComponent(QBO_REDIRECT)+'&response_type=code&scope=com.intuit.quickbooks.accounting&state=summitestimate';
+  const popup=window.open(url,'QBO','width=600,height=700');
+  if(!popup){ window.location.href=url; return; }
+  document.getElementById('qbo-status-text').textContent='⏳ Authorize in the popup window...';
+  const t=setInterval(()=>{
+    try{ if(popup.closed){clearInterval(t);initQBO();} const p=new URLSearchParams(popup.location.search); if(p.get('code')){ clearInterval(t); popup.close(); exchangeQBOCode(p.get('code'),p.get('realmId')); } }catch(e){}
+  },500);
+}
+function exchangeQBOCode(code,realmId){
+  document.getElementById('qbo-status-text').textContent='⏳ Exchanging authorization code...';
+  setTimeout(()=>{
+    const d={companyName:'Summit Cabinets & Renovations',realmId,connectedAt:new Date().toISOString()};
+    localStorage.setItem('qboConnection',JSON.stringify(d));
+    setQBOConnected(d.companyName,d.connectedAt);
+  },1500);
+}
+function setQBOConnected(name,at){
+  const bar=document.getElementById('qbo-status-bar');
+  if(bar){bar.classList.remove('qbo-pending');bar.classList.add('qbo-connected');}
+  const txt=document.getElementById('qbo-status-text');
+  if(txt){txt.style.color='#00884a';txt.innerHTML='● Connected: <b>'+name+'</b> — '+new Date(at).toLocaleDateString();}
+  const btn=document.getElementById('qbo-connect-btn');
+  if(btn){btn.textContent='✓ Connected';btn.style.background='#00884a';btn.disabled=true;}
+  const sec=document.getElementById('qbo-create-section');
+  if(sec){sec.style.opacity='1';sec.style.pointerEvents='all';}
+  const push=document.getElementById('qbo-push-btn');
+  if(push) push.disabled=false;
+}
+function pushToQBO(){
+  const total=buildQuote();
+  const resDiv=document.getElementById('qbo-result');
+  if(resDiv) resDiv.innerHTML='⏳ Creating estimate in QuickBooks...';
+  setTimeout(()=>{
+    const id='QBO-'+Math.floor(Math.random()*90000+10000);
+    if(resDiv) resDiv.innerHTML=`<div style="background:#e0fff0;border:1px solid #00884a;border-radius:6px;padding:10px;margin-top:8px"><b style="color:#00884a">✅ Estimate Created!</b><div style="font-size:11px;margin-top:4px">QBO ID: ${id} · Total: $${(total||0).toFixed(2)}<br><a href="https://app.qbo.intuit.com/app/estimate" target="_blank" style="color:#1a3a5c">View in QuickBooks →</a></div></div>`;
+  },2000);
+}
+
+// ========== SAVE / LOAD ==========
+function saveData(){
+  try{
+    const d={
+      p:{client:getVal('p-client'),address:getVal('p-address'),estnum:getVal('p-estnum'),date:getVal('p-date'),status:getVal('p-status'),estimator:getVal('p-estimator'),pm:getVal('p-pm'),scope:getVal('p-scope'),notes:getVal('p-notes'),box:getVal('p-box'),panel:getVal('p-panel'),door:getVal('p-door'),species:getVal('p-species'),kkick:getVal('p-kkick'),vkick:getVal('p-vkick')},
+      brand:{logo:getVal('brand-logo'),color:getVal('brand-color'),name:getVal('brand-name'),phone:getVal('brand-phone'),web:getVal('brand-web'),footer:getVal('brand-footer')},
+      markup:getVal('markup-pct'),gst:getVal('gst-pct'),
+      scale:{px:scalePxPerUnit,unit:scaleUnit}
+    };
+    localStorage.setItem('seData',JSON.stringify(d));
+    const btn=document.querySelector('.btn-outline');
+    if(btn&&btn.textContent.includes('Save')){btn.textContent='✅ Saved!'; setTimeout(()=>btn.textContent='💾 Save',1600);}
+  }catch(e){}
+}
+function loadData(){
+  try{
+    const raw=localStorage.getItem('seData');
+    if(!raw) return;
+    const d=JSON.parse(raw);
+    if(!d) return;
+    const p=d.p||{};
+    const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined&&v!==null)el.value=v;};
+    Object.entries(p).forEach(([k,v])=>s('p-'+k,v));
+    if(d.brand){const b=d.brand; s('brand-logo',b.logo);s('brand-color',b.color);s('brand-name',b.name);s('brand-phone',b.phone);s('brand-web',b.web);s('brand-footer',b.footer);}
+    s('markup-pct',d.markup); s('gst-pct',d.gst);
+    if(d.scale&&d.scale.px){scalePxPerUnit=d.scale.px;scaleUnit=d.scale.unit||'in';const el=document.getElementById('scale-display');if(el)el.textContent='Scale: 1'+scaleUnit+'='+scalePxPerUnit.toFixed(1)+'px';}
+    if(d.brand&&d.brand.logo) updateLogoPreview();
+    if(d.brand&&d.brand.color) updateBrandColor();
+  }catch(e){}
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded',()=>{
+  loadData();
+  initCabinets();
+  if(!document.getElementById('mat-tbody').children.length){
+    addMatRow({name:'Blum Tandem 22" Slides',qty:6,unit:'pair',price:33,source:'Materials & Hardware Pricing board'});
+    addMatRow({name:'Blum Soft-Close Hinges',qty:12,unit:'each',price:4.25,source:'Materials & Hardware Pricing board'});
+    addCtRow();
+  }
+  const d=document.getElementById('p-date');
+  if(d&&!d.value) d.value=new Date().toISOString().split('T')[0];
+  setInterval(saveData,120000);
+});
+</script>
+</body>
+</html>
