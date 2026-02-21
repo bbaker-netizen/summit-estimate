@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Summit Estimate</title>
-  <script>window.monday = window.mondaySdk ? window.mondaySdk() : (window.monday || null);</script>
+  
 <style>
       *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#f5f6fa;color:#323338}
@@ -1250,8 +1250,8 @@ function attachToMonday(){
   if(!quoteDoc){alert('Please go to the Quote tab first'); return;}
 
   // Gather naming info
-  const estNum = (document.getElementById('est-num')||{}).value || 'EST-???';
-  const client = (document.getElementById('client-name')||{}).value || 'Unknown';
+  const estNum = (document.getElementById('p-estnum')||{}).value || 'EST-???';
+  const client = (document.getElementById('p-client')||{}).value || 'Unknown';
   const today = new Date();
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dateStr = months[today.getMonth()] + ' ' + today.getDate() + ' ' + today.getFullYear();
@@ -1343,11 +1343,9 @@ function attachToMonday(){
             alert('No Monday item ID found.\nPlease open this app from within a Monday.com lead.');
             return;
     }
-      if(!window.monday){
-              restore();
-              alert('SDK not ready yet - please wait a moment and try again. Open this app from within Monday.com.');
-              return;
-      }
+      if(!window.monday&&window.mondaySdk){window.monday=window.mondaySdk();}
+  if(!window.monday&&window.mondaySDK){window.monday=window.mondaySDK();}
+  if(!window.monday){restore();alert('Monday SDK not loaded. Open this app from within Monday.com.');return;}
       // Call create_subitem via monday.api() - handles auth natively
       const mutation = `mutation {
             create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
@@ -1471,10 +1469,21 @@ function loadData(){
   }catch(e){}
 }
 
+// ========== SDK POLL ==========
+function waitForSDK(cb,tries){
+  tries=tries||0;
+  if(window.monday){cb();return;}
+  if(window.mondaySdk){window.monday=window.mondaySdk();cb();return;}
+  if(window.mondaySDK){window.monday=window.mondaySDK();cb();return;}
+  if(tries>40){cb();return;}
+  setTimeout(function(){waitForSDK(cb,tries+1);},100);
+}
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
   loadData();
-    if(window.monday){ window.monday.get('context').then(r=>{ if(r&&r.data){ window._mondayItemId=String(r.data.itemId||''); window._mondayBoardId=String(r.data.boardId||''); } }); }
+  waitForSDK(function(){
+    if(window.monday){window.monday.get('context').then(r=>{if(r&&r.data){window._mondayItemId=String(r.data.itemId||'');window._mondayBoardId=String(r.data.boardId||'');}});}
+  });
   initCabinets();
   if(!document.getElementById('mat-tbody').children.length){
     addMatRow({name:'Blum Tandem 22" Slides',qty:6,unit:'pair',price:33,source:'Materials & Hardware Pricing board'});
