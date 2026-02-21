@@ -1270,58 +1270,52 @@ function attachToMonday(){
           }
           if(!window.monday){ restore(); alert('Monday SDK not available.\nPlease open this app from within Monday.com.'); return; }
 
-          // Get itemId from context (async, reliable inside Monday.com iframe)
-          window.monday.get('context').then(ctx => {
-                      let itemId = '';
-                      if(ctx && ctx.data && ctx.data.itemId){
-                                    itemId = String(ctx.data.itemId);
-                      } else {
-                                    // Fallback: URL params or cached
-                                    const urlP = new URLSearchParams(window.location.search);
-                                    itemId = urlP.get('itemId') || window._mondayItemId || '';
-                      }
-
-                      if(!itemId){ restore(); alert('Could not determine the Monday.com item ID.\nPlease try closing and reopening this lead.'); return; }
-
-                      // Version tracking
-                      const shortEst = estNum.replace(/^EST-0+/,'EST-');
-                      const vKey = 'seVer_' + itemId;
-                      const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
-                      const subitemName = shortEst + ' \u2013 ' + client + ' \u2013 v' + vNum + ' [' + dateStr + ']';
-                      const fileName = subitemName.replace(/[\/\\\:*?"<>|]/g,'_') + '.pdf';
-
-                      // Create sub-item via monday.api() - handles auth natively
-                      const mutation = `mutation {
-                                create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
-                                              id
-                                                            name
-                                                                      }
-                                                                            }`;
-
-                      window.monday.api(mutation)
-                        .then(res => {
-                                        const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
-                                        if(subId){
-                                                          localStorage.setItem(vKey, vNum);
-                                                          restore();
-                            // Always show clear confirmation
-                                                                    alert('\u2705 Estimate saved!\n\n' + subitemName + '\n\nThe new version has been added as a sub-item under this lead.');} else {
-                                                          restore();
-                                                          const errMsg = res && res.errors ? JSON.stringify(res.errors) : 'Unknown error';
-                                                          alert('Sub-item creation failed:\n' + errMsg);
-                                        }
-                        })
-                        .catch(err => {
-                                        restore();
-                                        alert('Monday API error: ' + err.message);
-                        });
-
-          }).catch(ctxErr => {
+        // Get itemId - race context call against 3s timeout
+              const ctxTimeout = new Promise(resolve => setTimeout(() => resolve(null), 3000));
+              const ctxCall = window.monday.get('context').then(r => r).catch(() => null);
+              Promise.race([ctxCall, ctxTimeout]).then(ctx => {
+                              // Resolve itemId from context or URL params
+                              let itemId = (ctx && ctx.data && ctx.data.itemId) ? String(ctx.data.itemId) : '';
+                              if(!itemId){
+                                                const urlP = new URLSearchParams(window.location.search);
+                                                itemId = urlP.get('itemId') || window._mondayItemId || '';
+                              }
+                              if(!itemId){ restore(); alert('Could not determine the Monday.com item ID.\nPlease try closing and reopening this lead.'); return; }
+                    
+                              // Version tracking
+                              const shortEst = estNum.replace(/^EST-0+/,'EST-');
+                              const vKey = 'seVer_' + itemId;
+                              const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
+                              const subitemName = shortEst + ' \u2013 ' + client + ' \u2013 v' + vNum + ' [' + dateStr + ']';
+                    
+                              // Create sub-item via monday.api() - handles auth natively
+                              const mutation = `mutation {
+                                            create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
+                                                              id
+                                                                                name
+                                                                                              }
+                                                                                                        }`;
+                    
+                              window.monday.api(mutation)
+                                                .then(res => {
+                                                                    const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
+                                                                    if(subId){
+                                                                                          localStorage.setItem(vKey, vNum);
+                                                                                          restore();
+                                                                                          alert('\u2705 Estimate saved!\n\n' + subitemName + '\n\nA new version has been added as a sub-item under this lead.');
+                                                                    } else {
                       restore();
-                      alert('Could not get Monday context: ' + ctxErr.message + '\nPlease open this from within Monday.com.');
-          });
-}
-function initQBO(){
+                                                                                          const errMsg = res && res.errors ? JSON.stringify(res.errors) : 'Unknown error';
+                                                                                          alert('Sub-item creation failed:\n' + errMsg);
+                                                                    }
+                                                })
+                                                .catch(err => {
+                                                                    restore();
+                                                                    alert('Monday API error: ' + err.message);
+                                                });
+              }
+              });
+      function initQBO(){
   const stored=localStorage.getItem('qboConnection');
   if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
   const cust=document.getElementById('qbo-customer');
