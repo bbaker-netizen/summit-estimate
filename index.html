@@ -1254,9 +1254,9 @@ function attachToMonday(){
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dateStr = months[today.getMonth()] + ' ' + today.getDate() + ' ' + today.getFullYear();
 
-  // Get Monday context from URL
-  const urlP = new URLSearchParams(window.location.search);
-  const itemId = urlP.get('itemId') || '';
+// Get Monday context - try URL params first, then SDK context, then localStorage
+                        const urlP = new URLSearchParams(window.location.search);
+      const itemId = urlP.get('itemId') || window._mondayItemId || '';
 
   // Version tracking
   const vKey = 'seVer_' + (itemId || 'default');
@@ -1472,6 +1472,7 @@ function loadData(){
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
   loadData();
+    if(window.monday){ window.monday.get('context').then(r=>{ if(r&&r.data){ window._mondayItemId=String(r.data.itemId||''); window._mondayBoardId=String(r.data.boardId||''); } }); }
   initCabinets();
   if(!document.getElementById('mat-tbody').children.length){
     addMatRow({name:'Blum Tandem 22" Slides',qty:6,unit:'pair',price:33,source:'Materials & Hardware Pricing board'});
