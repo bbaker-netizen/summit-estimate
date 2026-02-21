@@ -1304,17 +1304,8 @@ function attachToMonday(){
                                         if(subId){
                                                           localStorage.setItem(vKey, vNum);
                                                           restore();
-                                                          // Try to show Monday notice
-                                                          try{
-                                                                              window.monday.execute('notice', {
-                                                                                                    message: '\u2705 ' + subitemName,
-                                                                                                    type: 'success',
-                                                                                                    timeout: 6000
-                                                                                    });
-                                                          }catch(e){
-                                                                              alert('\u2705 Saved!\n\n' + subitemName + '\n\nCheck the sub-items on this lead.');
-                                                          }
-                                        } else {
+                            // Always show clear confirmation
+                                                                    alert('\u2705 Estimate saved!\n\n' + subitemName + '\n\nThe new version has been added as a sub-item under this lead.');} else {
                                                           restore();
                                                           const errMsg = res && res.errors ? JSON.stringify(res.errors) : 'Unknown error';
                                                           alert('Sub-item creation failed:\n' + errMsg);
