@@ -1260,20 +1260,15 @@ function attachToMonday(){
   const client = (document.getElementById('p-client')||{}).value || 'Unknown';
   const shortEst = estNum.replace(/^EST-0+/,'EST-');
 
-  // Get itemId - try URL params first (Monday.com passes this), then cached context
+  // Get itemId from URL params (Monday.com passes this to the iframe)
   const urlP = new URLSearchParams(window.location.search);
   const itemId = urlP.get('itemId') || urlP.get('item_id') || window._mondayItemId || '';
 
   if(!itemId){
     restore();
-    alert('No Monday.com item ID found.\n\nMake sure you are opening this app from a lead row in Monday.com.\n\nURL: ' + window.location.href);
+    alert('No Monday.com item ID found.\n\nThis app must be opened from a lead row in Monday.com.');
     return;
   }
-
-  // Version tracking
-  const vKey = 'seVer_' + itemId;
-  const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
-  const subitemName = shortEst + ' \u2013 ' + client + ' \u2013 v' + vNum + ' [' + dateStr + ']';
 
   // Ensure monday SDK is initialized
   if(!window.monday && window.mondaySdk){ window.monday = window.mondaySdk(); }
@@ -1285,26 +1280,35 @@ function attachToMonday(){
     return;
   }
 
-  // Create sub-item via monday.api() - handles auth natively inside Monday.com iframe
-  const mutation = `mutation {
-    create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
-      id
-      name
-    }
-  }`;
+  // Query Monday for existing sub-item count to get version number
+  const countQuery = `{ items(ids: [${itemId}]) { subitems { id } } }`;
 
-  window.monday.api(mutation)
-    .then(res => {
-      const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
-      if(subId){
-        localStorage.setItem(vKey, vNum);
-        restore();
-        alert('\u2705 Estimate saved!\n\n' + subitemName + '\n\nA new version has been added as a sub-item under this lead.');
-      } else {
-        restore();
-        const errMsg = res && res.errors ? JSON.stringify(res.errors) : JSON.stringify(res);
-        alert('Sub-item creation failed:\n' + errMsg);
-      }
+  window.monday.api(countQuery)
+    .then(countRes => {
+      // Get version number from sub-item count + 1
+      const existingSubitems = (countRes && countRes.data && countRes.data.items && countRes.data.items[0] && countRes.data.items[0].subitems) || [];
+      const vNum = existingSubitems.length + 1;
+      const subitemName = shortEst + ' – ' + client + ' – v' + vNum + ' [' + dateStr + ']';
+
+      // Create the sub-item
+      const mutation = `mutation {
+        create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
+          id
+          name
+        }
+      }`;
+
+      return window.monday.api(mutation).then(res => {
+        const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
+        if(subId){
+          restore();
+          alert('✅ Estimate saved!\n\n' + subitemName + '\n\nA new version has been added as a sub-item under this lead.');
+        } else {
+          restore();
+          const errMsg = res && res.errors ? JSON.stringify(res.errors) : JSON.stringify(res);
+          alert('Sub-item creation failed:\n' + errMsg);
+        }
+      });
     })
     .catch(err => {
       restore();
