@@ -1245,77 +1245,74 @@ function exportQuotePDF(){
 }
 
 function attachToMonday(){
-          buildQuote();
-          const quoteDoc = document.getElementById('quote-doc');
-          if(!quoteDoc){alert('Please go to the Quote tab first'); return;}
+  const btn = document.getElementById('btn-attach');
+  const orig = btn ? btn.textContent : '';
+  function restore(){ if(btn){ btn.textContent=orig; btn.disabled=false; } }
+  if(btn){ btn.textContent='⏳ Saving...'; btn.disabled=true; }
 
-          // Gather naming info
-          const estNum = (document.getElementById('p-estnum')||{}).value || 'EST-???';
-          const client = (document.getElementById('p-client')||{}).value || 'Unknown';
-          const today = new Date();
-          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-          const dateStr = months[today.getMonth()] + ' ' + today.getDate() + ' ' + today.getFullYear();
+  // Get date string
+  const now = new Date();
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateStr = months[now.getMonth()] + ' ' + now.getDate() + ' ' + now.getFullYear();
 
-          // Show saving indicator
-          const saveBtn = document.querySelector('.header-actions button:last-child');
-          if(saveBtn){ saveBtn.textContent = '\u23F3 Saving...'; saveBtn.disabled = true; }
-          const restore = () => {
-                      if(saveBtn){ saveBtn.textContent = '\uD83D\uDCBE Save Estimate'; saveBtn.disabled = false; }
-          };
+  // Read form fields
+  const estNum = (document.getElementById('p-estnum')||{}).value || 'EST-???';
+  const client = (document.getElementById('p-client')||{}).value || 'Unknown';
+  const shortEst = estNum.replace(/^EST-0+/,'EST-');
 
-          // Init SDK if needed
-          if(!window.monday){
-                      const f = window.mondaySdk || window.mondaySDK;
-                      if(f) window.monday = f();
-          }
-          if(!window.monday){ restore(); alert('Monday SDK not available.\nPlease open this app from within Monday.com.'); return; }
+  // Get itemId - try URL params first (Monday.com passes this), then cached context
+  const urlP = new URLSearchParams(window.location.search);
+  const itemId = urlP.get('itemId') || urlP.get('item_id') || window._mondayItemId || '';
 
-        // Get itemId - race context call against 3s timeout
-              const ctxTimeout = new Promise(resolve => setTimeout(() => resolve(null), 3000));
-              const ctxCall = window.monday.get('context').then(r => r).catch(() => null);
-              Promise.race([ctxCall, ctxTimeout]).then(ctx => {
-                              // Resolve itemId from context or URL params
-                              let itemId = (ctx && ctx.data && ctx.data.itemId) ? String(ctx.data.itemId) : '';
-                              if(!itemId){
-                                                const urlP = new URLSearchParams(window.location.search);
-                                                itemId = urlP.get('itemId') || window._mondayItemId || '';
-                              }
-                              if(!itemId){ restore(); alert('Could not determine the Monday.com item ID.\nPlease try closing and reopening this lead.'); return; }
-                    
-                              // Version tracking
-                              const shortEst = estNum.replace(/^EST-0+/,'EST-');
-                              const vKey = 'seVer_' + itemId;
-                              const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
-                              const subitemName = shortEst + ' \u2013 ' + client + ' \u2013 v' + vNum + ' [' + dateStr + ']';
-                    
-                              // Create sub-item via monday.api() - handles auth natively
-                              const mutation = `mutation {
-                                            create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
-                                                              id
-                                                                                name
-                                                                                              }
-                                                                                                        }`;
-                    
-                              window.monday.api(mutation)
-                                                .then(res => {
-                                                                    const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
-                                                                    if(subId){
-                                                                                          localStorage.setItem(vKey, vNum);
-                                                                                          restore();
-                                                                                          alert('\u2705 Estimate saved!\n\n' + subitemName + '\n\nA new version has been added as a sub-item under this lead.');
-                                                                    } else {
-                      restore();
-                                                                                          const errMsg = res && res.errors ? JSON.stringify(res.errors) : 'Unknown error';
-                                                                                          alert('Sub-item creation failed:\n' + errMsg);
-                                                                    }
-                                                })
-                                                .catch(err => {
-                                                                    restore();
-                                                                    alert('Monday API error: ' + err.message);
-                                                });
-              }
-              });
-      function initQBO(){
+  if(!itemId){
+    restore();
+    alert('No Monday.com item ID found.\n\nMake sure you are opening this app from a lead row in Monday.com.\n\nURL: ' + window.location.href);
+    return;
+  }
+
+  // Version tracking
+  const vKey = 'seVer_' + itemId;
+  const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
+  const subitemName = shortEst + ' \u2013 ' + client + ' \u2013 v' + vNum + ' [' + dateStr + ']';
+
+  // Ensure monday SDK is initialized
+  if(!window.monday && window.mondaySdk){ window.monday = window.mondaySdk(); }
+  if(!window.monday && window.mondaySDK){ window.monday = window.mondaySDK(); }
+
+  if(!window.monday){
+    restore();
+    alert('Monday SDK not available.\n\nPlease open this app from within Monday.com.');
+    return;
+  }
+
+  // Create sub-item via monday.api() - handles auth natively inside Monday.com iframe
+  const mutation = `mutation {
+    create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
+      id
+      name
+    }
+  }`;
+
+  window.monday.api(mutation)
+    .then(res => {
+      const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
+      if(subId){
+        localStorage.setItem(vKey, vNum);
+        restore();
+        alert('\u2705 Estimate saved!\n\n' + subitemName + '\n\nA new version has been added as a sub-item under this lead.');
+      } else {
+        restore();
+        const errMsg = res && res.errors ? JSON.stringify(res.errors) : JSON.stringify(res);
+        alert('Sub-item creation failed:\n' + errMsg);
+      }
+    })
+    .catch(err => {
+      restore();
+      alert('Monday API error: ' + (err && err.message ? err.message : String(err)));
+    });
+}
+
+function initQBO(){
   const stored=localStorage.getItem('qboConnection');
   if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
   const cust=document.getElementById('qbo-customer');
