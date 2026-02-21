@@ -1245,92 +1245,91 @@ function exportQuotePDF(){
 }
 
 function attachToMonday(){
-  buildQuote();
-  const quoteDoc = document.getElementById('quote-doc');
-  if(!quoteDoc){alert('Please go to the Quote tab first'); return;}
+          buildQuote();
+          const quoteDoc = document.getElementById('quote-doc');
+          if(!quoteDoc){alert('Please go to the Quote tab first'); return;}
 
-  // Gather naming info
-  const estNum = (document.getElementById('p-estnum')||{}).value || 'EST-???';
-  const client = (document.getElementById('p-client')||{}).value || 'Unknown';
-  const today = new Date();
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dateStr = months[today.getMonth()] + ' ' + today.getDate() + ' ' + today.getFullYear();
+          // Gather naming info
+          const estNum = (document.getElementById('p-estnum')||{}).value || 'EST-???';
+          const client = (document.getElementById('p-client')||{}).value || 'Unknown';
+          const today = new Date();
+          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          const dateStr = months[today.getMonth()] + ' ' + today.getDate() + ' ' + today.getFullYear();
 
-// Get Monday context - try URL params first, then SDK context, then localStorage
-                        const urlP = new URLSearchParams(window.location.search);
-      const itemId = urlP.get('itemId') || window._mondayItemId || '';
+          // Show saving indicator
+          const saveBtn = document.querySelector('.header-actions button:last-child');
+          if(saveBtn){ saveBtn.textContent = '\u23F3 Saving...'; saveBtn.disabled = true; }
+          const restore = () => {
+                      if(saveBtn){ saveBtn.textContent = '\uD83D\uDCBE Save Estimate'; saveBtn.disabled = false; }
+          };
 
-  // Version tracking
-  const vKey = 'seVer_' + (itemId || 'default');
-  const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
-  const shortEst = estNum.replace(/^EST-0+/,'EST-');
-  const subitemName = shortEst + ' – ' + client + ' – v' + vNum + ' [' + dateStr + ']';
+          // Init SDK if needed
+          if(!window.monday){
+                      const f = window.mondaySdk || window.mondaySDK;
+                      if(f) window.monday = f();
+          }
+          if(!window.monday){ restore(); alert('Monday SDK not available.\nPlease open this app from within Monday.com.'); return; }
 
-  // Show saving indicator
-  const saveBtn = document.querySelector('.header-actions button:last-child');
-  if(saveBtn){ saveBtn.textContent = '⏳ Saving...'; saveBtn.disabled = true; }
+          // Get itemId from context (async, reliable inside Monday.com iframe)
+          window.monday.get('context').then(ctx => {
+                      let itemId = '';
+                      if(ctx && ctx.data && ctx.data.itemId){
+                                    itemId = String(ctx.data.itemId);
+                      } else {
+                                    // Fallback: URL params or cached
+                                    const urlP = new URLSearchParams(window.location.search);
+                                    itemId = urlP.get('itemId') || window._mondayItemId || '';
+                      }
 
-  const restore = () => {
-    if(saveBtn){ saveBtn.textContent = '💾 Save Estimate'; saveBtn.disabled = false; }
-  };
+                      if(!itemId){ restore(); alert('Could not determine the Monday.com item ID.\nPlease try closing and reopening this lead.'); return; }
 
-  // Generate PDF using jsPDF then send to Netlify relay
+                      // Version tracking
+                      const shortEst = estNum.replace(/^EST-0+/,'EST-');
+                      const vKey = 'seVer_' + itemId;
+                      const vNum = parseInt(localStorage.getItem(vKey) || '0') + 1;
+                      const subitemName = shortEst + ' \u2013 ' + client + ' \u2013 v' + vNum + ' [' + dateStr + ']';
+                      const fileName = subitemName.replace(/[\/\\\:*?"<>|]/g,'_') + '.pdf';
 
-  // Use monday.api() directly - handles auth natively in iframe
-    if(!itemId){
-            restore();
-            alert('No Monday item ID found.\nPlease open this app from within a Monday.com lead.');
-            return;
-    }
-      if(!window.monday&&window.mondaySdk){window.monday=window.mondaySdk();}
-  if(!window.monday&&window.mondaySDK){window.monday=window.mondaySDK();}
-  if(!window.monday){restore();alert('Monday SDK not loaded. Open this app from within Monday.com.');return;}
-      // Declare PDF vars in outer scope so .then() can access them
-      let pdfBase64 = null;
-      const fileName = subitemName.replace(/[\/\\:*?"<>|]/g,'_') + '.pdf';
-      // Call create_subitem via monday.api() - handles auth natively
-      const mutation = `mutation {
-            create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
-                    id
-                            name
-                                  }
-                                      }`;
-      window.monday.api(mutation)
-        .then(res => {
-                  const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
-                  if(subId){
-                              localStorage.setItem(vKey, vNum);
-                              restore();
-                              // Upload PDF via Netlify relay if we have PDF data
-                              if(pdfBase64){
-                                            fetch('https://summit-estimate.netlify.app/.netlify/functions/save-estimate',{
-                                                            method:'POST',
-                                                            headers:{'Content-Type':'application/json'},
-                                                            body:JSON.stringify({subitemId:subId, pdfBase64, fileName})
-                                            }).catch(()=>{}); // fire and forget - sub-item already created
-                              }
-                              // Show success toast
-                              try{
-                                            window.monday.execute('notice', {
-                                                            message: '\u2705 ' + subitemName,
-                                                            type: 'success',
-                                                            timeout: 6000
-                                            });
-                              }catch(e){
-                                            alert('\u2705 Saved!\n\n' + subitemName + '\n\nCheck the sub-items on this lead.');
-                              }
-                  } else {
-                              restore();
-                              const errMsg = res && res.errors ? JSON.stringify(res.errors) : 'Unknown error';
-                              alert('Sub-item creation failed:\n' + errMsg);
-                  }
-        })
-        .catch(err => {
-                  restore();
-                  alert('Monday API error: ' + err.message);
-        });
+                      // Create sub-item via monday.api() - handles auth natively
+                      const mutation = `mutation {
+                                create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
+                                              id
+                                                            name
+                                                                      }
+                                                                            }`;
+
+                      window.monday.api(mutation)
+                        .then(res => {
+                                        const subId = res && res.data && res.data.create_subitem && res.data.create_subitem.id;
+                                        if(subId){
+                                                          localStorage.setItem(vKey, vNum);
+                                                          restore();
+                                                          // Try to show Monday notice
+                                                          try{
+                                                                              window.monday.execute('notice', {
+                                                                                                    message: '\u2705 ' + subitemName,
+                                                                                                    type: 'success',
+                                                                                                    timeout: 6000
+                                                                                    });
+                                                          }catch(e){
+                                                                              alert('\u2705 Saved!\n\n' + subitemName + '\n\nCheck the sub-items on this lead.');
+                                                          }
+                                        } else {
+                                                          restore();
+                                                          const errMsg = res && res.errors ? JSON.stringify(res.errors) : 'Unknown error';
+                                                          alert('Sub-item creation failed:\n' + errMsg);
+                                        }
+                        })
+                        .catch(err => {
+                                        restore();
+                                        alert('Monday API error: ' + err.message);
+                        });
+
+          }).catch(ctxErr => {
+                      restore();
+                      alert('Could not get Monday context: ' + ctxErr.message + '\nPlease open this from within Monday.com.');
+          });
 }
-
 function initQBO(){
   const stored=localStorage.getItem('qboConnection');
   if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
