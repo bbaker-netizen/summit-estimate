@@ -1275,67 +1275,6 @@ function attachToMonday(){
   };
 
   // Generate PDF using jsPDF then send to Netlify relay
-  const doSave = async (token) => {
-    let pdfBase64 = null;
-    let fileName = (subitemName.replace(/[\\/:*?"<>|]/g,'_') + '.pdf');
-
-    try {
-      if(window.jspdf){
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'letter'});
-        await new Promise((resolve) => {
-          pdf.html(quoteDoc, {
-            callback: function(doc){
-              pdfBase64 = doc.output('datauristring').split(',')[1];
-              resolve();
-            },
-            x:10, y:10, width:190, windowWidth:800
-          });
-        });
-      }
-    } catch(pdfErr){
-      console.warn('PDF generation warning:', pdfErr.message);
-    }
-
-    // Call Netlify relay
-    const payload = { token, itemId, subitemName, pdfBase64, fileName };
-    const resp = await fetch('https://summit-estimate.netlify.app/.netlify/functions/save-estimate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const result = await resp.json();
-
-    if(result.ok){
-      localStorage.setItem(vKey, vNum);
-      restore();
-      // Show success via Monday SDK if available
-      if(window.monday){
-        try{
-          window.monday.execute('notice', {
-            message: '✅ ' + subitemName,
-            type: 'success',
-            timeout: 6000
-          });
-        }catch(e){}
-      } else {
-        alert('✅ Saved!\n\n' + subitemName + '\n\nCheck the sub-items on this lead.');
-      }
-    } else {
-      restore();
-      // Fallback: download locally
-      if(pdfBase64){
-        const blob = new Blob([Uint8Array.from(atob(pdfBase64), c=>c.charCodeAt(0))], {type:'application/pdf'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href=url; a.download=fileName; a.click();
-        URL.revokeObjectURL(url);
-        localStorage.setItem(vKey, vNum);
-        alert('📎 Saved locally as:\n' + fileName + '\n\nUpload this file to the Files tab on this lead.\n\n(API note: ' + (result.message||'relay unavailable') + ')');
-      } else {
-        alert('Save failed: ' + (result.message || 'Unknown error'));
-      }
-    }
-  };
 
   // Use monday.api() directly - handles auth natively in iframe
     if(!itemId){
@@ -1346,6 +1285,9 @@ function attachToMonday(){
       if(!window.monday&&window.mondaySdk){window.monday=window.mondaySdk();}
   if(!window.monday&&window.mondaySDK){window.monday=window.mondaySDK();}
   if(!window.monday){restore();alert('Monday SDK not loaded. Open this app from within Monday.com.');return;}
+      // Declare PDF vars in outer scope so .then() can access them
+      let pdfBase64 = null;
+      const fileName = subitemName.replace(/[\/\\:*?"<>|]/g,'_') + '.pdf';
       // Call create_subitem via monday.api() - handles auth natively
       const mutation = `mutation {
             create_subitem(parent_item_id: ${itemId}, item_name: "${subitemName}") {
