@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://cdn.monday.com/monday-sdk-js/monday-sdk-js.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Summit Estimate</title>
+<script>window.monday = window.mondaySDK ? window.mondaySDK() : (window.monday || null);</script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+      *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#f5f6fa;color:#323338}
 .app-container{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .app-header{background:#1a3a5c;color:#fff;padding:7px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -1344,7 +1345,7 @@ function attachToMonday(){
     }
       if(!window.monday){
               restore();
-              alert('Monday SDK not loaded. Open this app from within Monday.com.');
+              alert('SDK not ready yet - please wait a moment and try again. Open this app from within Monday.com.');
               return;
       }
       // Call create_subitem via monday.api() - handles auth natively
