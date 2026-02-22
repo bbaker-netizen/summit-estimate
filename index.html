@@ -1769,72 +1769,97 @@ function loadData(){
     if(d.scale&&d.scale.px){scalePxPerUnit=d.scale.px;scaleUnit=d.scale.unit||'in';const el=document.getElementById('scale-display');if(el)el.textContent='Scale: 1'+scaleUnit+'='+scalePxPerUnit.toFixed(1)+'px';}
     if(d.brand&&d.brand.logo) updateLogoPreview();
     if(d.brand&&d.brand.color) updateBrandColor();
-  }catch(e){}
+    window._loadDataDone = true;
+}catch(e){}
 }
 
 // ========== SDK POLL ==========
+
 function waitForSDK(cb,tries){
   tries=tries||0;
   if(window.monday){cb();return;}
-  if(window.mondaySdk){window.monday=window.mondaySdk();cb();return;}
-  if(window.mondaySDK){window.monday=window.mondaySDK();cb();return;}
-  if(tries>40){cb();return;}
+  if(window.monday===undefined&&tries>40){cb();return;}
   setTimeout(function(){waitForSDK(cb,tries+1);},100);
 }
+
+// ========== CONTEXT HANDLER (shared for initial load + item switch) ==========
+function handleMondayContext(data){
+  if(!data) return;
+  var newItemId = String(data.itemId||'');
+  var newBoardId = String(data.boardId||'');
+  if(!newItemId) return;
+
+  // If item changed, clear auto-populated fields so they refill
+  var itemChanged = (window._mondayItemId && window._mondayItemId !== newItemId);
+  window._mondayItemId = newItemId;
+  window._mondayBoardId = newBoardId;
+
+  // Purge ALL legacy seData_* keys
+  var legacyKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith('seData_'); });
+  legacyKeys.forEach(function(lk){ localStorage.removeItem(lk); });
+
+  // If item switched, clear auto-populated fields so new item's data fills in
+  if(itemChanged){
+    var clientEl = document.getElementById('p-client');
+    var addrEl = document.getElementById('p-address');
+    if(clientEl) clientEl.value = '';
+    if(addrEl) addrEl.value = '';
+  }
+
+  // Load saved data for THIS item (per-item isolation)
+  window._loadDataDone = true;
+  loadData();
+
+  // Auto-populate CLIENT + ADDRESS from Monday item data
+  if(window.monday && window._mondayItemId){
+    window.monday.api('{ items(ids:['+window._mondayItemId+']){ id name column_values{ id text value } } }')
+      .then(function(res){
+        if(res&&res.data&&res.data.items&&res.data.items[0]){
+          var item = res.data.items[0];
+          var clientEl = document.getElementById('p-client');
+          if(clientEl && !clientEl.value) clientEl.value = item.name||'';
+          if(item.column_values){
+            item.column_values.forEach(function(cv){
+              var addrEl = document.getElementById('p-address');
+              if((cv.id==='text'||cv.id==='address') && cv.text && addrEl && !addrEl.value)
+                addrEl.value = cv.text;
+            });
+          }
+          saveData();
+        }
+      }).catch(function(){});
+  }
+}
+
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
-  // loadData() is called by waitForSDK after itemId is known
-  // Fallback: if SDK doesn't respond in 2s (standalone mode), load with default
+  // loadData() is called after itemId is known from SDK
+  // Fallback: if SDK doesn't respond in 4s (standalone/direct mode), load with default key
   window._loadDataDone = false;
-  setTimeout(function(){ if(!window._loadDataDone){ loadData(); } }, 2000);
+  setTimeout(function(){ if(!window._loadDataDone){ loadData(); } }, 4000);
   // Pre-load logo via Netlify proxy (avoids iframe CORS restriction)
-  window._logob64 = '';
+  var logoUrl = 'https://summitcabinets.ca/wp-content/uploads/2024/03/summit-logo.png';
   setTimeout(function(){
-    var logoUrl = (document.getElementById('brand-logo') ? document.getElementById('brand-logo').value.trim() : '') || 'https://summitcabinets.ca/wp-content/uploads/2022/05/new-logo5.png';
     if(logoUrl){
       fetch('https://summit-estimate.netlify.app/.netlify/functions/fetch-logo?url=' + encodeURIComponent(logoUrl))
         .then(function(r){ return r.json(); })
-        .then(function(d){ if(d.b64) window._logob64 = d.b64; })
+        .then(function(j){ if(j&&j.dataUrl){ var el=document.getElementById('brand-logo'); if(el&&!el.value) el.value=j.dataUrl; } })
         .catch(function(){}); // silently ignore if proxy fails
     }
   }, 1500);
   waitForSDK(function(){
     if(window.monday){
+      // Initial context load
       window.monday.get('context').then(function(r){
-        if(r&&r.data){
-          window._mondayItemId = String(r.data.itemId||'');
-          window._mondayBoardId = String(r.data.boardId||'');
-          // Always purge ALL legacy seData_ keys when we have a real Monday context
-          var legacyKeys = [];
-          for(var li=0; li<localStorage.length; li++){ var lk=localStorage.key(li); if(lk&&lk.indexOf('seData_')===0) legacyKeys.push(lk); }
-          legacyKeys.forEach(function(lk){ localStorage.removeItem(lk); });
-          // Reload saved data for THIS item (per-item isolation)
-          window._loadDataDone = true;
-          loadData();
-          // Auto-populate fields from Monday item if still blank
-          if(window._mondayItemId && window._mondayItemId !== 'default'){
-            window.monday.api('{ items(ids:['+window._mondayItemId+']){ id name column_values{ id text value } } }')
-              .then(function(res){
-                if(res&&res.data&&res.data.items&&res.data.items[0]){
-                  var item = res.data.items[0];
-                  var clientEl = document.getElementById('p-client');
-                  if(clientEl && !clientEl.value) clientEl.value = item.name||'';
-                  if(item.column_values){
-                    item.column_values.forEach(function(cv){
-                      var addrEl = document.getElementById('p-address');
-                      if((cv.id==='text'||cv.id==='address') && cv.text && addrEl && !addrEl.value)
-                        addrEl.value = cv.text;
-                    });
-                  }
-                  saveData();
-                }
-              }).catch(function(){});
-          }
-        }
+        if(r&&r.data){ handleMondayContext(r.data); }
+      });
+      // React to item switches (user navigates to a different CRM lead)
+      window.monday.listen('context', function(r){
+        if(r&&r.data){ handleMondayContext(r.data); }
       });
     }
   });
-  initCabinets();
+    initCabinets();
   if(!document.getElementById('mat-tbody').children.length){
     addMatRow({name:'Blum Tandem 22" Slides',qty:6,unit:'pair',price:33,source:'Materials & Hardware Pricing board'});
     addMatRow({name:'Blum Soft-Close Hinges',qty:12,unit:'each',price:4.25,source:'Materials & Hardware Pricing board'});
