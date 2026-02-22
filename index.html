@@ -1772,6 +1772,10 @@ document.addEventListener('DOMContentLoaded',()=>{
         if(r&&r.data){
           window._mondayItemId = String(r.data.itemId||'');
           window._mondayBoardId = String(r.data.boardId||'');
+          // Clear stale seData_default (migration from old code that wrote without itemId)
+          if(window._mondayItemId && window._mondayItemId !== 'default'){
+            localStorage.removeItem('seData_default');
+          }
           // Reload saved data for THIS item (per-item isolation)
           window._loadDataDone = true;
           loadData();
