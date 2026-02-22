@@ -122,7 +122,7 @@ textarea{resize:vertical;min-height:55px}
   <div class="header-actions no-print">
     <button class="btn btn-outline btn-sm" onclick="saveData()">💾 Save</button>
     <button class="btn btn-success btn-sm" onclick="exportQuotePDF()">📄 Quote PDF</button>
-    <button class="btn btn-primary btn-sm" onclick="attachToMonday()">💾 Save Estimate</button>
+    <button class="btn btn-primary btn-sm" id="btn-save-estimate" onclick="attachToMonday()">💾 Save Estimate</button>
   </div>
 </div>
 
@@ -1246,94 +1246,104 @@ function exportQuotePDF(){
 }
 
 function attachToMonday(){
-  const now = new Date();
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dateStr = months[now.getMonth()]+' '+now.getDate()+' '+now.getFullYear();
-  const isoDate = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var urlP = new URLSearchParams(window.location.search);
+  var itemId = urlP.get('itemId') || window._mondayItemId || '';
+  var client = (document.getElementById('p-client')||{}).value || 'Client';
+  var estNum = (document.getElementById('p-estnum')||{}).value || 'EST-001';
+  var shortEst = estNum.replace(/^EST-0+/,'EST-').replace(/^EST-(?=[1-9])/,'EST-');
+  var now = new Date();
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dateStr = months[now.getMonth()] + ' ' + now.getDate() + ' ' + now.getFullYear();
+  var isoDate = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
 
-  const urlP = new URLSearchParams(window.location.search);
-  const itemId = urlP.get('itemId');
-  if(!itemId){ alert('No itemId in URL. Open from a Monday.com lead row.'); return; }
+  var btn = document.getElementById('btn-save-estimate');
+  var origText = btn ? btn.textContent : '';
+  if(btn){ btn.textContent = 'Saving...'; btn.disabled = true; }
+  function restore(){ if(btn){ btn.textContent = origText || 'Save Estimate'; btn.disabled = false; } }
 
-  const clientEl = document.getElementById('p-client') || document.getElementById('project-name');
-  const clientName = (clientEl && clientEl.value && clientEl.value.trim()) ? clientEl.value.trim() : 'Client';
+  function showStatus(msg, isError){
+    var el = document.getElementById('save-status-msg');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'save-status-msg';
+      el.style.cssText = 'position:fixed;top:60px;right:10px;z-index:9999;padding:12px 18px;border-radius:8px;font-size:14px;max-width:350px;word-wrap:break-word;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+      document.body.appendChild(el);
+    }
+    el.style.background = isError ? '#f44336' : '#4CAF50';
+    el.style.color = '#fff';
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(function(){ if(el) el.style.display='none'; }, 8000);
+  }
 
-  window.monday.api('{ items(ids:[' + itemId + ']){ subitems{ id } } }').then(function(countRes){
+  if(!itemId){ restore(); showStatus('No item ID - open from Monday.com', true); return; }
+  if(!window.monday){ restore(); showStatus('Monday SDK not loaded', true); return; }
+
+  window.monday.api('{ items(ids:[' + itemId + ']){ subitems { id } } }').then(function(countRes){
     var count = 0;
     try { count = countRes.data.items[0].subitems.length; } catch(e){}
-    var v = count + 1;
-    var subName = 'EST-' + v + ' – ' + clientName + ' – v' + v + ' [' + dateStr + ']';
+    var vNum = count + 1;
+    var subName = shortEst + ' – ' + client + ' – v' + vNum + ' [' + dateStr + ']';
 
-    window.monday.api('mutation { create_subitem(parent_item_id: ' + itemId + ', item_name: "' + subName + '") { id board { id columns { id title type } } } }').then(function(mutRes){
-      var sub = null;
-      try { sub = mutRes.data.create_subitem; } catch(e){}
-      if(!sub || !sub.id){ alert('Sub-item creation failed: ' + JSON.stringify(mutRes).substring(0,150)); return; }
-
+    return window.monday.api('mutation { create_subitem(parent_item_id: ' + itemId + ', item_name: "' + subName.replace(/"/g, '\"') + '") { id board { id columns { id title type } } } }').then(function(subRes){
+      var sub = subRes && subRes.data && subRes.data.create_subitem;
+      if(!sub || !sub.id){ showStatus('Sub-item creation failed', true); restore(); return; }
       var subId = sub.id;
       var subBoardId = sub.board ? sub.board.id : null;
       var cols = (sub.board && sub.board.columns) ? sub.board.columns : [];
       var dateCol = null, fileCol = null;
-      for(var i=0;i<cols.length;i++){
-        if(!dateCol && (cols[i].type==='date' || (cols[i].title && cols[i].title.toLowerCase().indexOf('date')>=0))) dateCol = cols[i];
-        if(!fileCol && (cols[i].type==='file' || (cols[i].title && cols[i].title.toLowerCase().indexOf('estimate doc')>=0))) fileCol = cols[i];
+      for(var i = 0; i < cols.length; i++){
+        if(cols[i].type === 'date' || cols[i].title.toLowerCase().indexOf('date') >= 0) dateCol = cols[i];
+        if(cols[i].type === 'file' || cols[i].title.toLowerCase().indexOf('doc') >= 0) fileCol = cols[i];
       }
 
       var datePromise = Promise.resolve();
       if(dateCol && subBoardId){
-        var dv = '{\\"date\\":\\"' + isoDate + '\\"}';
-        datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateCol.id + '", value: "' + dv + '") { id } }').catch(function(e){ console.warn('Date fail:', e); });
+        var dateVal = '{"date":"' + isoDate + '"}';
+        var escapedVal = dateVal.replace(/"/g, '\"');
+        datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateCol.id + '", value: "' + escapedVal + '") { id } }').catch(function(e){ console.warn('Date set error:', e); });
       }
 
       datePromise.then(function(){
         var pdfBase64 = null;
-        var JsPDF = null;
-        try { JsPDF = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF || null); } catch(e){}
-        if(JsPDF){
-          try {
-            var pdfDoc = new JsPDF({ unit: 'pt', format: 'letter' });
-            // Use text-only PDF - no html() to avoid hanging on hidden elements
-            pdfDoc.setFontSize(18);
-            pdfDoc.text('Summit Estimate', 40, 50);
-            pdfDoc.setFontSize(14);
-            pdfDoc.text(subName, 40, 80);
-            pdfDoc.setFontSize(11);
-            pdfDoc.text('Client: ' + clientName, 40, 110);
-            pdfDoc.text('Date: ' + dateStr, 40, 130);
-            pdfDoc.text('Estimate: ' + (document.getElementById('p-estimate-num') ? document.getElementById('p-estimate-num').value : ''), 40, 150);
-            pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
-          } catch(e){ console.error('PDF err:', e); }
-        }
-        callNetlify(subId, subName, pdfBase64, fileCol ? fileCol.id : null, subBoardId);
-      });
-    }).catch(function(e){ alert('Mutation error: ' + e); });
-  }).catch(function(e){ alert('Count error: ' + e); });
+        try {
+          var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
+          if(JsPDF){
+            var doc = new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+            doc.setFontSize(16); doc.setFont('helvetica','bold');
+            doc.text('Summit Cabinets - Estimate', 20, 20);
+            doc.setFontSize(11); doc.setFont('helvetica','normal');
+            doc.text('Estimate: ' + subName, 20, 32);
+            doc.text('Client: ' + client, 20, 40);
+            doc.text('Date: ' + dateStr, 20, 48);
+            var totalEl = document.getElementById('q-grand-total');
+            if(totalEl){ doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.text('Total: ' + (totalEl.textContent||'').trim(), 20, 60); }
+            pdfBase64 = doc.output('datauristring').split(',')[1];
+          }
+        } catch(pdfErr){ console.error('PDF error:', pdfErr); }
 
-  function callNetlify(subId, subName, pdfBase64, fileColId, boardId){
-    var tp = new Promise(function(res){
-      var t = setTimeout(function(){ res(null); }, 8000);
-      window.monday.get('sessionToken').then(function(r){ clearTimeout(t); res(r && r.data ? r.data : null); }).catch(function(){ clearTimeout(t); res(null); });
-    });
-    tp.then(function(token){
-      if(!pdfBase64){
-        alert('✅ Estimate saved!\nSub-item: ' + subName + '\nDate set.\n(PDF: no library available)');
-        return;
-      }
-      var payload = { subitemId: subId, boardId: boardId, fileColId: fileColId, fileName: subName.replace(/[^a-zA-Z0-9 _\-]/g,'_') + '.pdf', pdfBase64: pdfBase64, token: token };
-      fetch('https://summit-estimate.netlify.app/.netlify/functions/save-estimate', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-      }).then(function(r){ return r.json(); }).then(function(result){
-        if(result && (result.success || result.fileId)){
-          alert('✅ Estimate saved!\nSub-item: ' + subName + '\nPDF attached to Estimate Doc.\nDate set to today.');
-        } else {
-          alert('⚠️ Sub-item + date saved.\nPDF issue: ' + JSON.stringify(result).substring(0,120));
-        }
-      }).catch(function(e){
-        alert('⚠️ Sub-item + date saved.\nRelay error: ' + e);
+        fetch('https://summit-estimate.netlify.app/.netlify/functions/save-estimate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            subitemId: subId,
+            boardId: subBoardId,
+            fileColId: fileCol ? fileCol.id : null,
+            fileName: subName.replace(/[^a-zA-Z0-9 _-]/g, '_') + '.pdf',
+            pdfBase64: pdfBase64
+          })
+        }).then(function(r){ return r.json(); }).then(function(result){
+          restore();
+          if(result && (result.success || result.fileId)){
+            showStatus('Saved: ' + subName + (pdfBase64 ? ' | PDF attached' : '') + ' | Date: ' + dateStr);
+          } else {
+            showStatus('Sub-item created. PDF issue: ' + JSON.stringify(result).substring(0,80), true);
+          }
+        }).catch(function(e){ restore(); showStatus('Sub-item created. Relay error: ' + e, true); });
       });
     });
-  }
+  }).catch(function(err){ restore(); showStatus('API error: ' + err, true); });
 }
-
 function initQBO(){
   const stored=localStorage.getItem('qboConnection');
   if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
