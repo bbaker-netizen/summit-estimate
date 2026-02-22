@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
       <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Summit Estimate</title>
@@ -1309,7 +1310,7 @@ function attachToMonday(){
 
   function callNetlify(subId, subName, pdfBase64, fileColId, boardId){
     var tp = new Promise(function(res){
-      var t = setTimeout(function(){ res(null); }, 5000);
+      var t = setTimeout(function(){ res(null); }, 8000);
       window.monday.get('sessionToken').then(function(r){ clearTimeout(t); res(r && r.data ? r.data : null); }).catch(function(){ clearTimeout(t); res(null); });
     });
     tp.then(function(token){
