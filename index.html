@@ -1622,19 +1622,17 @@ function waitForSDK(cb,tries){
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
   loadData();
-  // Pre-load logo in background for PDF
+  // Pre-load logo via Netlify proxy (avoids iframe CORS restriction)
   window._logob64 = '';
   setTimeout(function(){
     var logoUrl = document.getElementById('brand-logo') ? document.getElementById('brand-logo').value.trim() : '';
     if(logoUrl){
-      var img=new Image();
-      img.onload=function(){
-        try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
-        c.getContext('2d').drawImage(img,0,0);window._logob64=c.toDataURL('image/png');}catch(e){}
-      };
-      img.src=logoUrl;
+      fetch('https://summit-estimate.netlify.app/.netlify/functions/fetch-logo?url=' + encodeURIComponent(logoUrl))
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if(d.b64) window._logob64 = d.b64; })
+        .catch(function(){}); // silently ignore if proxy fails
     }
-  }, 2000);
+  }, 1500);
   waitForSDK(function(){
     if(window.monday){window.monday.get('context').then(r=>{if(r&&r.data){window._mondayItemId=String(r.data.itemId||'');window._mondayBoardId=String(r.data.boardId||'');}});}
   });
