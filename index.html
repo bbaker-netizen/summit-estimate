@@ -1311,306 +1311,196 @@ function attachToMonday(){
           if(JsPDF){
             var doc = new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
             var pageW = 210, margin = 15, y = 0;
-            var brandColor = [26,58,92]; // navy
 
-            // --- helpers ---
-            function ln(n){ y += (n === undefined ? 5 : n); }
-            function checkPage(need){ if(y + (need||10) > 275){ doc.addPage(); y = 15; } }
-            function gv(id){ var el = document.getElementById(id); return el ? (el.value||'') : ''; }
-            function setColor(rgb){ doc.setTextColor(rgb[0],rgb[1],rgb[2]); }
+            function ln(n){ y += (n===undefined?5:n); }
+            function checkPage(need){ if(y+(need||10)>275){ doc.addPage(); y=15; } }
+            function gv(id){ var el=document.getElementById(id); return el?(el.value||''):''; }
 
-            // ── SECTION HEADER ────────────────────────────────────────────
-            // Dark navy band, text vertically centred with 2mm above and below
-            var SHDR_H = 8;  // total section header height in mm
-            function sectionHeader(title) {
-              checkPage(SHDR_H + 4);
-              doc.setFillColor(brandColor[0], brandColor[1], brandColor[2]);
-              doc.rect(margin, y, pageW - margin*2, SHDR_H, 'F');
+            // Vertical centre baseline for text inside a rect band
+            // fontSize in pt; returns y coordinate for doc.text()
+            function vctr(bandY, bandH, fsPt) {
+              // cap-height ≈ fontSize(pt) × 0.352778(pt→mm) × 0.72(cap ratio)
+              return bandY + bandH/2 + fsPt*0.352778*0.72/2;
+            }
+
+            // ── SECTION HEADER BAND ────────────────────────────────────
+            var SHDR = 9;
+            function secHdr(title) {
+              checkPage(SHDR+12);
+              doc.setFillColor(26,58,92);
+              doc.rect(margin, y, pageW-margin*2, SHDR, 'F');
               doc.setFontSize(9); doc.setFont('helvetica','bold');
               doc.setTextColor(255,255,255);
-              // Vertically centre: baseline = y + half-height + ~half cap height (≈ fontSize*0.35mm)
-              doc.text(title, margin + 3, y + SHDR_H/2 + 1.6);
-              y += SHDR_H;
+              doc.text(title, margin+3, vctr(y, SHDR, 9));
+              y += SHDR;
               doc.setTextColor(40,40,40);
             }
 
-            // ── COLUMN SUBHEADER ROW ──────────────────────────────────────
-            // Light blue background, bold text, centred vertically
-            var COL_H = 7;
-            function colHeader(widths, labels) {
-              checkPage(COL_H + 2);
-              doc.setFillColor(230, 236, 248);
-              doc.rect(margin, y, pageW - margin*2, COL_H, 'F');
+            // ── COLUMN SUB-HEADER ROW ─────────────────────────────────
+            var CHDR = 8;
+            function colHdr(ws, labels) {
+              checkPage(CHDR+2);
+              doc.setFillColor(228,235,250);
+              doc.rect(margin, y, pageW-margin*2, CHDR, 'F');
               doc.setFontSize(8); doc.setFont('helvetica','bold');
               doc.setTextColor(26,58,92);
-              var x = margin;
-              labels.forEach(function(lbl, i) {
-                var isRight = (i === labels.length - 1);
-                // baseline: y + half of row + half cap height
-                doc.text(String(lbl), isRight ? x + widths[i] - 2 : x + 3, y + COL_H/2 + 1.4, {align: isRight ? 'right' : 'left'});
-                x += widths[i];
+              var x=margin;
+              labels.forEach(function(lbl,i){
+                var right=(i===labels.length-1);
+                doc.text(String(lbl), right?x+ws[i]-2:x+3, vctr(y,CHDR,8), {align:right?'right':'left'});
+                x+=ws[i];
               });
-              y += COL_H;
+              y += CHDR;
               doc.setTextColor(40,40,40);
             }
 
-            // ── DATA ROW ─────────────────────────────────────────────────
-            var ROW_H = 6;
-            function dataRow(widths, values, even) {
-              checkPage(ROW_H + 2);
-              if(even){ doc.setFillColor(248,250,255); doc.rect(margin, y, pageW-margin*2, ROW_H, 'F'); }
+            // ── DATA ROW ─────────────────────────────────────────────
+            var ROWY = 6.5;
+            function dataRow(ws, vals, even) {
+              checkPage(ROWY+2);
+              if(even){ doc.setFillColor(248,250,255); doc.rect(margin,y,pageW-margin*2,ROWY,'F'); }
               doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40);
-              var x = margin;
-              values.forEach(function(v, i) {
-                var isRight = (i === values.length - 1);
-                doc.text(String(v||''), isRight ? x + widths[i] - 2 : x + 3, y + ROW_H/2 + 1.4, {align: isRight ? 'right' : 'left', maxWidth: widths[i] - 5});
-                x += widths[i];
+              var x=margin;
+              vals.forEach(function(v,i){
+                var right=(i===vals.length-1);
+                doc.text(String(v||''), right?x+ws[i]-2:x+3, vctr(y,ROWY,8.5), {align:right?'right':'left', maxWidth:ws[i]-5});
+                x+=ws[i];
               });
-              // hairline separator
-              doc.setDrawColor(220,225,235); doc.setLineWidth(0.2);
-              doc.line(margin, y + ROW_H, pageW - margin, y + ROW_H);
-              y += ROW_H;
+              doc.setDrawColor(215,222,235); doc.setLineWidth(0.2);
+              doc.line(margin, y+ROWY, pageW-margin, y+ROWY);
+              y += ROWY;
             }
 
-            // ── TOTALS ROW ───────────────────────────────────────────────
-            var TOT_H = 7, TOT_HI = 9;
-            function totRow(label, amount, highlight) {
-              var h = highlight ? TOT_HI : TOT_H;
-              checkPage(h + 2);
-              var tw = 80, tx = pageW - margin - tw;
-              if(highlight){
-                doc.setFillColor(brandColor[0], brandColor[1], brandColor[2]);
-                doc.rect(tx - 2, y, tw + 4, h, 'F');
+            // ── TOTAL ROW ────────────────────────────────────────────
+            function totRow(label, amount, hi) {
+              var h=hi?10:7; checkPage(h+3);
+              var tw=80, tx=pageW-margin-tw;
+              if(hi){
+                doc.setFillColor(26,58,92); doc.rect(tx-2,y,tw+4,h,'F');
                 doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
               } else {
-                doc.setFillColor(245, 247, 252);
-                doc.rect(tx - 2, y, tw + 4, h, 'F');
+                doc.setFillColor(245,247,252); doc.rect(tx-2,y,tw+4,h,'F');
                 doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60);
               }
-              var baseline = y + h/2 + (highlight ? 2 : 1.4);
-              doc.text(label,  tx + 3,         baseline, {align:'left'});
-              doc.text(amount, tx + tw - 2,    baseline, {align:'right'});
-              doc.setTextColor(40,40,40);
-              y += h + 1;
+              var bl=vctr(y,h,hi?11:9);
+              doc.text(label, tx+3, bl, {align:'left'});
+              doc.text(amount, tx+tw-2, bl, {align:'right'});
+              doc.setTextColor(40,40,40); y+=h+2;
             }
 
-            // ═════════════════════════════════════════════════════════════
-            // BUILD PDF
-            // ═════════════════════════════════════════════════════════════
+            // ═══════════════ BUILD ═══════════════════════════════════
 
-            // ── HEADER BAND (with optional logo) ─────────────────────────
-            var HDR_H = 30;
-            doc.setFillColor(brandColor[0], brandColor[1], brandColor[2]);
-            doc.rect(0, 0, pageW, HDR_H, 'F');
-
+            // ── HEADER ───────────────────────────────────────────────
+            var HDR=32;
+            doc.setFillColor(26,58,92); doc.rect(0,0,pageW,HDR,'F');
             var logoUrl = gv('brand-logo').trim();
-            var logoLoaded = false;
-            function drawHeaderText() {
-              var textX = logoLoaded ? 52 : margin;
-              doc.setTextColor(255,255,255);
-              doc.setFontSize(15); doc.setFont('helvetica','bold');
-              doc.text(gv('brand-name') || 'Summit Cabinets & Renovations', textX, 13);
-              doc.setFontSize(8.5); doc.setFont('helvetica','normal');
-              doc.text((gv('brand-phone') || '780-554-7348') + '  |  ' + (gv('brand-web') || 'summitcabinets.ca') + '  |  6735 76 Ave NW, Edmonton', textX, 21);
-              doc.setTextColor(255,200,100);
-              doc.setFontSize(18); doc.setFont('helvetica','bold');
-              doc.text('ESTIMATE', pageW - margin, 13, {align:'right'});
-            }
-
-            if(logoUrl) {
+            var textX = margin;
+            if(logoUrl){
               try {
-                var imgProps = doc.getImageProperties(logoUrl);
-                var logoH = 22, logoW = logoH * (imgProps.width / imgProps.height);
-                if(logoW > 36) { logoW = 36; logoH = logoW * (imgProps.height / imgProps.width); }
-                doc.addImage(logoUrl, 'PNG', margin, (HDR_H - logoH)/2, logoW, logoH);
-                logoLoaded = true;
-              } catch(imgErr) { logoLoaded = false; }
+                doc.addImage(logoUrl,'PNG',margin,(HDR-24)/2,36,24,undefined,'FAST');
+                textX = margin+40;
+              } catch(e){}
             }
-            drawHeaderText();
-            y = HDR_H + 4;
+            doc.setTextColor(255,255,255);
+            doc.setFontSize(15); doc.setFont('helvetica','bold');
+            doc.text(gv('brand-name')||'Summit Cabinets & Renovations', textX, HDR*0.42);
+            doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+            doc.text((gv('brand-phone')||'780-554-7348')+'  |  '+(gv('brand-web')||'summitcabinets.ca')+'  |  6735 76 Ave NW, Edmonton', textX, HDR*0.72);
+            doc.setFontSize(20); doc.setFont('helvetica','bold');
+            doc.setTextColor(255,200,100);
+            doc.text('ESTIMATE', pageW-margin, HDR*0.45, {align:'right'});
+            y = HDR+5;
 
-            // ── ESTIMATE REF LINE ─────────────────────────────────────────
+            // ── REF LINE ─────────────────────────────────────────────
             doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(40,40,40);
             doc.text(subName, margin, y);
-            doc.setFont('helvetica','normal'); doc.setFontSize(9);
-            doc.text('Date: ' + dateStr, pageW - margin, y, {align:'right'});
-            ln(7);
+            doc.setFontSize(9); doc.setFont('helvetica','normal');
+            doc.text('Date: '+dateStr, pageW-margin, y, {align:'right'});
+            ln(8);
 
-            // ── CLIENT / JOB / ESTIMATOR BOX ─────────────────────────────
-            var BOX_H = 24;
-            doc.setFillColor(240,244,255);
-            doc.rect(margin, y, pageW - margin*2, BOX_H, 'F');
-            var col2 = margin + (pageW - margin*2)/3, col3 = margin + 2*(pageW - margin*2)/3;
-            // Labels
+            // ── CLIENT BOX ───────────────────────────────────────────
+            var BH=26; doc.setFillColor(240,244,255); doc.rect(margin,y,pageW-margin*2,BH,'F');
+            var t=(pageW-margin*2)/3, c2=margin+t, c3=margin+2*t;
             doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(110,115,145);
-            doc.text('PREPARED FOR', margin+3, y+5.5);
-            doc.text('JOB SITE',     col2+3,   y+5.5);
-            doc.text('ESTIMATOR',    col3+3,   y+5.5);
-            // Values
-            doc.setFontSize(10); doc.setFont('helvetica','bold'); setColor(brandColor);
-            doc.text(gv('p-client') || client, margin+3, y+12);
+            doc.text('PREPARED FOR',margin+3,y+6); doc.text('JOB SITE',c2+3,y+6); doc.text('ESTIMATOR',c3+3,y+6);
+            doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,92);
+            doc.text(gv('p-client')||client,margin+3,y+13);
             doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60);
-            doc.text(gv('p-address') || '', margin+3, y+18);
-            doc.text(gv('p-address') || '', col2+3, y+12);
-            doc.text(gv('p-estimator') || '', col3+3, y+12);
-            doc.text('PM: ' + (gv('p-pm') || ''), col3+3, y+18);
-            y += BOX_H + 4;
+            doc.text(gv('p-address')||'',margin+3,y+20);
+            doc.text(gv('p-address')||'',c2+3,y+13);
+            doc.text(gv('p-estimator')||'',c3+3,y+13);
+            doc.text('PM: '+(gv('p-pm')||''),c3+3,y+20);
+            y+=BH+5;
 
-            // ── SPEC BAR ─────────────────────────────────────────────────
-            var SPEC_H = 7;
-            doc.setFillColor(228,234,248);
-            doc.rect(margin, y, pageW - margin*2, SPEC_H, 'F');
-            doc.setFontSize(7.5); doc.setFont('helvetica','bold'); setColor(brandColor);
-            var specText = 'Box: '+(gv('p-box')||'—')+'  |  Panel: '+(gv('p-panel')||'—')+'  |  Door: '+(gv('p-door')||'—')+'  |  Kitchen Kick: '+(gv('p-kkick')||'—')+'  |  Vanity Kick: '+(gv('p-vkick')||'—');
-            doc.text(specText, margin + 3, y + SPEC_H/2 + 1.3);
-            y += SPEC_H + 5;
+            // ── SPEC BAR ─────────────────────────────────────────────
+            var SH=7; doc.setFillColor(228,234,248); doc.rect(margin,y,pageW-margin*2,SH,'F');
+            doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,92);
+            doc.text('Box: '+(gv('p-box')||'—')+'  |  Panel: '+(gv('p-panel')||'—')+'  |  Door: '+(gv('p-door')||'—')+'  |  Kitchen Kick: '+(gv('p-kkick')||'—')+'  |  Vanity Kick: '+(gv('p-vkick')||'—'), margin+3, vctr(y,SH,7.5));
+            y+=SH+6;
 
-            var runningTotal = 0;
+            var total=0;
 
-            // ── CABINETS ─────────────────────────────────────────────────
-            var cabRows = document.querySelectorAll('#cab-tbody tr');
-            if(cabRows.length > 0){
-              sectionHeader('CABINETS');
-              colHeader([15,58,16,16,16,22,37], ['Code','Cabinet / Location','W','H','D','Finish','Unit $']);
-              var rowIdx = 0;
-              cabRows.forEach(function(tr){
-                var inputs = tr.querySelectorAll('input');
-                var price = parseFloat(tr.querySelector('input[type=number]') ? tr.querySelector('input[type=number]').value : 0)||0;
-                if(!inputs[0]) return;
-                dataRow([15,58,16,16,16,22,37], [
-                  inputs[0].value,
-                  inputs[1]?inputs[1].value:'',
-                  inputs[2]?inputs[2].value:'',
-                  inputs[3]?inputs[3].value:'',
-                  inputs[4]?inputs[4].value:'',
-                  tr.querySelector('select')?tr.querySelector('select').value:'',
-                  price ? '$'+price.toFixed(2) : '—'
-                ], rowIdx%2===1);
-                runningTotal += price;
-                rowIdx++;
-              });
-              y += 3;
+            // ── CABINETS ─────────────────────────────────────────────
+            var rows=document.querySelectorAll('#cab-tbody tr');
+            if(rows.length){
+              secHdr('CABINETS');
+              colHdr([15,58,16,16,16,22,37],['Code','Cabinet / Location','W','H','D','Finish','Unit $']);
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var p=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; if(!inp[0]) return; dataRow([15,58,16,16,16,22,37],[inp[0].value,inp[1]?inp[1].value:'',inp[2]?inp[2].value:'',inp[3]?inp[3].value:'',inp[4]?inp[4].value:'',tr.querySelector('select')?tr.querySelector('select').value:'',p?'$'+p.toFixed(2):'—'],ri%2===1); total+=p; ri++; }); y+=4;
             }
 
-            // ── ISLAND PANELS ─────────────────────────────────────────────
-            var panelRows = document.querySelectorAll('#panel-tbody tr');
-            if(panelRows.length > 0){
-              sectionHeader('ISLAND PANELS');
-              colHeader([15,80,22,22,41], ['Code','Description','W','H','Unit $']);
-              var rowIdx = 0;
-              panelRows.forEach(function(tr){
-                var inputs = tr.querySelectorAll('input');
-                var price = parseFloat(tr.querySelector('input[type=number]') ? tr.querySelector('input[type=number]').value : 0)||0;
-                if(!inputs[0]) return;
-                dataRow([15,80,22,22,41], [inputs[0].value, inputs[1]?inputs[1].value:'', inputs[2]?inputs[2].value:'', inputs[3]?inputs[3].value:'', price?'$'+price.toFixed(2):'—'], rowIdx%2===1);
-                runningTotal += price;
-                rowIdx++;
-              });
-              y += 3;
+            // ── ISLAND PANELS ─────────────────────────────────────────
+            rows=document.querySelectorAll('#panel-tbody tr');
+            if(rows.length){
+              secHdr('ISLAND PANELS');
+              colHdr([15,80,22,22,41],['Code','Description','W','H','Unit $']);
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var p=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; if(!inp[0]) return; dataRow([15,80,22,22,41],[inp[0].value,inp[1]?inp[1].value:'',inp[2]?inp[2].value:'',inp[3]?inp[3].value:'',p?'$'+p.toFixed(2):'—'],ri%2===1); total+=p; ri++; }); y+=4;
             }
 
-            // ── TOEKICKS ─────────────────────────────────────────────────
-            var kickRows = document.querySelectorAll('#kick-tbody tr');
-            if(kickRows.length > 0){
-              sectionHeader('TOEKICKS & KICKS');
-              colHeader([15,88,26,26,25], ['Code','Description','Lin Ft','$/ft','Total']);
-              var rowIdx = 0;
-              kickRows.forEach(function(tr){
-                var inputs = tr.querySelectorAll('input');
-                var nums = tr.querySelectorAll('input[type=number]');
-                var ft = parseFloat(nums[0]?nums[0].value:0)||0, pft = parseFloat(nums[1]?nums[1].value:0)||0, total = ft*pft;
-                if(!inputs[0]) return;
-                dataRow([15,88,26,26,25], [inputs[0].value, inputs[1]?inputs[1].value:'', ft||'—', pft?'$'+pft.toFixed(2):'—', total?'$'+total.toFixed(2):'—'], rowIdx%2===1);
-                runningTotal += total;
-                rowIdx++;
-              });
-              y += 3;
+            // ── TOEKICKS ─────────────────────────────────────────────
+            rows=document.querySelectorAll('#kick-tbody tr');
+            if(rows.length){
+              secHdr('TOEKICKS & KICKS');
+              colHdr([15,88,26,26,25],['Code','Description','Lin Ft','$/ft','Total']);
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var ns=tr.querySelectorAll('input[type=number]'); var ft=parseFloat(ns[0]?ns[0].value:0)||0,pft=parseFloat(ns[1]?ns[1].value:0)||0,tt=ft*pft; if(!inp[0]) return; dataRow([15,88,26,26,25],[inp[0].value,inp[1]?inp[1].value:'',ft||'—',pft?'$'+pft.toFixed(2):'—',tt?'$'+tt.toFixed(2):'—'],ri%2===1); total+=tt; ri++; }); y+=4;
             }
 
-            // ── MATERIALS & HARDWARE ─────────────────────────────────────
-            var matRows = document.querySelectorAll('#mat-tbody tr');
-            if(matRows.length > 0){
-              sectionHeader('MATERIALS & HARDWARE');
-              colHeader([78,20,26,31,25], ['Item','Qty','Unit','Unit $','Total']);
-              var rowIdx = 0;
-              matRows.forEach(function(tr){
-                var inputs = tr.querySelectorAll('input');
-                var nums = tr.querySelectorAll('input[type=number]');
-                var qty = parseFloat(nums[0]?nums[0].value:1)||1, price = parseFloat(nums[1]?nums[1].value:0)||0, total = qty*price;
-                if(!inputs[0]||!inputs[0].value) return;
-                var unit = inputs[2]?inputs[2].value:'ea';
-                dataRow([78,20,26,31,25], [inputs[0].value, qty, unit, price?'$'+price.toFixed(2):'—', total?'$'+total.toFixed(2):'—'], rowIdx%2===1);
-                runningTotal += total;
-                rowIdx++;
-              });
-              y += 3;
+            // ── MATERIALS ────────────────────────────────────────────
+            rows=document.querySelectorAll('#mat-tbody tr');
+            if(rows.length){
+              secHdr('MATERIALS & HARDWARE');
+              colHdr([78,20,26,31,25],['Item','Qty','Unit','Unit $','Total']);
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var ns=tr.querySelectorAll('input[type=number]'); var qty=parseFloat(ns[0]?ns[0].value:1)||1,price=parseFloat(ns[1]?ns[1].value:0)||0,tt=qty*price; if(!inp[0]||!inp[0].value) return; dataRow([78,20,26,31,25],[inp[0].value,qty,inp[2]?inp[2].value:'ea',price?'$'+price.toFixed(2):'—',tt?'$'+tt.toFixed(2):'—'],ri%2===1); total+=tt; ri++; }); y+=4;
             }
 
-            // ── COUNTERTOPS ──────────────────────────────────────────────
-            var ctRows = document.querySelectorAll('#ct-tbody tr');
-            if(ctRows.length > 0){
-              sectionHeader('COUNTERTOPS');
-              colHeader([35,73,22,25,25], ['Location','Material','Sq Ft','$/sqft','Total']);
-              var rowIdx = 0;
-              ctRows.forEach(function(tr){
-                var loc = tr.querySelector('input')?tr.querySelector('input').value:'';
-                var mat = tr.querySelector('select')?tr.querySelector('select').value.split('(')[0].trim():'';
-                var sqft = parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0;
-                var rate = parseFloat(tr.querySelector('.ct-rate')?tr.querySelector('.ct-rate').textContent.replace('$',''):0)||0;
-                var total = sqft*rate;
-                if(!total) return;
-                dataRow([35,73,22,25,25], [loc, mat, sqft, '$'+rate.toFixed(2), '$'+total.toFixed(2)], rowIdx%2===1);
-                runningTotal += total;
-                rowIdx++;
-              });
-              y += 3;
+            // ── COUNTERTOPS ──────────────────────────────────────────
+            rows=document.querySelectorAll('#ct-tbody tr');
+            if(rows.length){
+              secHdr('COUNTERTOPS');
+              colHdr([35,73,22,25,25],['Location','Material','Sq Ft','$/sqft','Total']);
+              var ri=0; rows.forEach(function(tr){ var loc=tr.querySelector('input')?tr.querySelector('input').value:''; var mat=tr.querySelector('select')?tr.querySelector('select').value.split('(')[0].trim():''; var sf=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; var rt=parseFloat(tr.querySelector('.ct-rate')?tr.querySelector('.ct-rate').textContent.replace('$',''):0)||0; var tt=sf*rt; if(!tt) return; dataRow([35,73,22,25,25],[loc,mat,sf,'$'+rt.toFixed(2),'$'+tt.toFixed(2)],ri%2===1); total+=tt; ri++; }); y+=4;
             }
 
-            // ── TOTALS BLOCK ─────────────────────────────────────────────
-            checkPage(52);
-            y += 4;
-            var markupPct = parseFloat(gv('markup-pct'))||25;
-            var gstPct    = parseFloat(gv('gst-pct'))||5;
-            var markup    = runningTotal*(markupPct/100);
-            var beforeTax = runningTotal+markup;
-            var gst       = beforeTax*(gstPct/100);
-            var grandTotal= beforeTax+gst;
+            // ── TOTALS ───────────────────────────────────────────────
+            checkPage(58); y+=5;
+            var mkp=parseFloat(gv('markup-pct'))||25, gstP=parseFloat(gv('gst-pct'))||5;
+            var mk=total*(mkp/100), bt=total+mk, gst=bt*(gstP/100), grand=bt+gst;
+            totRow('Subtotal',           '$'+total.toFixed(2), false);
+            totRow('Markup ('+mkp+'%)', '$'+mk.toFixed(2),    false);
+            totRow('Before Tax',         '$'+bt.toFixed(2),   false);
+            totRow('GST ('+gstP+'%)',   '$'+gst.toFixed(2),   false);
+            totRow('TOTAL',              '$'+grand.toFixed(2), true);
 
-            totRow('Subtotal',                    '$'+runningTotal.toFixed(2), false);
-            totRow('Markup ('+markupPct+'%)',      '$'+markup.toFixed(2),       false);
-            totRow('Before Tax',                   '$'+beforeTax.toFixed(2),    false);
-            totRow('GST ('+gstPct+'%)',            '$'+gst.toFixed(2),          false);
-            totRow('TOTAL',                        '$'+grandTotal.toFixed(2),   true);
+            // ── SCOPE / NOTES ────────────────────────────────────────
+            var sc=gv('p-scope'); if(sc){ checkPage(20); y+=5; doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,92); doc.text('Scope of Work:',margin,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60); var sl=doc.splitTextToSize(sc,pageW-margin*2); doc.text(sl,margin,y); y+=sl.length*5+2; }
+            var nt=gv('p-notes'); if(nt){ checkPage(20); y+=3; doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(200,100,0); doc.text('Special Notes:',margin,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(80,60,40); var nl=doc.splitTextToSize(nt,pageW-margin*2); doc.text(nl,margin,y); }
 
-            // ── SCOPE / NOTES ────────────────────────────────────────────
-            var scope = gv('p-scope');
-            if(scope){
-              checkPage(20); y += 4;
-              doc.setFontSize(9); doc.setFont('helvetica','bold'); setColor(brandColor);
-              doc.text('Scope of Work:', margin, y); y += 5;
-              doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60);
-              var scopeLines = doc.splitTextToSize(scope, pageW - margin*2);
-              doc.text(scopeLines, margin, y); y += scopeLines.length*5 + 2;
-            }
-            var notes = gv('p-notes');
-            if(notes){
-              checkPage(20); y += 2;
-              doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(200,100,0);
-              doc.text('Special Notes:', margin, y); y += 5;
-              doc.setFont('helvetica','normal'); doc.setTextColor(80,60,40);
-              var noteLines = doc.splitTextToSize(notes, pageW - margin*2);
-              doc.text(noteLines, margin, y); y += noteLines.length*5 + 2;
-            }
-
-            // ── PAGE FOOTER ───────────────────────────────────────────────
-            var pageCount = doc.getNumberOfPages();
-            for(var p = 1; p <= pageCount; p++){
-              doc.setPage(p);
-              doc.setFillColor(228,234,248);
-              doc.rect(0, 288, pageW, 9, 'F');
+            // ── PAGE FOOTER ──────────────────────────────────────────
+            var pc=doc.getNumberOfPages();
+            for(var p=1;p<=pc;p++){
+              doc.setPage(p); doc.setFillColor(228,234,248); doc.rect(0,288,pageW,9,'F');
               doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(110,115,145);
-              doc.text(gv('brand-footer')||'All prices in CAD. GST included as shown. Valid for 30 days. Thank you for choosing Summit Cabinets!', pageW/2, 293.5, {align:'center'});
-              doc.text('Page '+p+' of '+pageCount, pageW - margin, 293.5, {align:'right'});
+              doc.text(gv('brand-footer')||'All prices in CAD. GST included as shown. Valid for 30 days. Thank you for choosing Summit Cabinets!',pageW/2,293.5,{align:'center'});
+              doc.text('Page '+p+' of '+pc,pageW-margin,293.5,{align:'right'});
             }
 
             pdfBase64 = doc.output('datauristring').split(',')[1];
