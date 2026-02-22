@@ -1,4 +1,4 @@
-h<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
       <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
@@ -11,7 +11,7 @@ h<!DOCTYPE html>
   <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Summit Estimate</title>
-  
+  h
 <style>
       *{box-sizing:border-box;margin:0;padding:0}
 button,input,select,textarea{font-family:inherit;}
@@ -624,13 +624,21 @@ textarea{resize:vertical;min-height:55px}
   </div>
 </div><script>
 // ========== VERSION MIGRATION ==========
-// Clear stale seData_default if app version changed (prevents cross-item data bleed)
+// On EVERY load: purge ALL legacy seData_ keys (old JS wrote these; new JS uses se2_ prefix)
+// This ensures old cached Monday.com iframe JS cannot poison new data
 (function(){
-  var APP_VER = '2.1';
+  var APP_VER = '2.2';
+  // Always nuke all legacy seData_ keys unconditionally
+  var keysToRemove = [];
+  for(var i=0; i<localStorage.length; i++){
+    var k = localStorage.key(i);
+    if(k && k.indexOf('seData_')===0) keysToRemove.push(k);
+  }
+  for(var j=0; j<keysToRemove.length; j++) localStorage.removeItem(keysToRemove[j]);
+  // Version bump: also clear se2_default on version mismatch
   var storedVer = localStorage.getItem('seAppVersion');
   if(storedVer !== APP_VER){
-    // Remove stale default key from old versions
-    localStorage.removeItem('se2_default'); localStorage.removeItem('seData_default');
+    localStorage.removeItem('se2_default');
     localStorage.setItem('seAppVersion', APP_VER);
   }
 })();
@@ -914,7 +922,7 @@ function autoCorrect(){
   if(detected==='ellipse'){
     ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.stroke();
     shapeObjects.push({type:'ellipse',cx,cy,rx,ry,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
-    setStatus('Auto → Ellipse ('+Math.round(rx*2)+'×'+Math.round(ry*2)+'px)');
+    setStatus('Auto → Ellipse ('+Math.round(rx*2)+'×'+Math.round(ry*2)+'px)');h
   } else if(detected==='triangle'){
     const pts=getTrianglePts(penPath);
     ctx.moveTo(pts[0].x,pts[0].y); ctx.lineTo(pts[1].x,pts[1].y); ctx.lineTo(pts[2].x,pts[2].y); ctx.closePath(); ctx.stroke();
@@ -1787,10 +1795,10 @@ document.addEventListener('DOMContentLoaded',()=>{
         if(r&&r.data){
           window._mondayItemId = String(r.data.itemId||'');
           window._mondayBoardId = String(r.data.boardId||'');
-          // Clear stale seData_default (migration from old code that wrote without itemId)
-          if(window._mondayItemId && window._mondayItemId !== 'default'){
-            localStorage.removeItem('seData_default');
-          }
+          // Always purge ALL legacy seData_ keys when we have a real Monday context
+          var legacyKeys = [];
+          for(var li=0; li<localStorage.length; li++){ var lk=localStorage.key(li); if(lk&&lk.indexOf('seData_')===0) legacyKeys.push(lk); }
+          legacyKeys.forEach(function(lk){ localStorage.removeItem(lk); });
           // Reload saved data for THIS item (per-item isolation)
           window._loadDataDone = true;
           loadData();
