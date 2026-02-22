@@ -1305,19 +1305,7 @@ function attachToMonday(){
       }
 
       datePromise.then(function(){
-        var rawLogoUrl=gv('brand-logo').trim();
-        var logoTimeout=new Promise(function(res){ setTimeout(function(){ res(''); }, 5000); });
-        var logoLoad = rawLogoUrl ? new Promise(function(res){
-          var img=new Image();
-          img.onload=function(){
-            try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
-            c.getContext('2d').drawImage(img,0,0);res(c.toDataURL('image/png'));}catch(e){res('');}
-          };
-          img.onerror=function(){ res(''); };
-          img.src=rawLogoUrl;
-        }) : Promise.resolve('');
-        return Promise.race([logoLoad, logoTimeout]);
-      }).then(function(logoB64){
+        var logoB64 = window._logob64 || '';
         var pdfBase64 = null;
         try {
           var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
@@ -1634,6 +1622,19 @@ function waitForSDK(cb,tries){
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
   loadData();
+  // Pre-load logo in background for PDF
+  window._logob64 = '';
+  setTimeout(function(){
+    var logoUrl = document.getElementById('brand-logo') ? document.getElementById('brand-logo').value.trim() : '';
+    if(logoUrl){
+      var img=new Image();
+      img.onload=function(){
+        try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+        c.getContext('2d').drawImage(img,0,0);window._logob64=c.toDataURL('image/png');}catch(e){}
+      };
+      img.src=logoUrl;
+    }
+  }, 2000);
   waitForSDK(function(){
     if(window.monday){window.monday.get('context').then(r=>{if(r&&r.data){window._mondayItemId=String(r.data.itemId||'');window._mondayBoardId=String(r.data.boardId||'');}});}
   });
