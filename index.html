@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+h<!DOCTYPE html>
 <html lang="en">
 <head>
       <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
@@ -8,7 +8,7 @@
 <title>Summit Estimate</title>
   
 <style>
-      *{box-sizing:border-box;margin:0;padding:0}
+      *{box-sizing:border-box;margin:0;padding:0}h
 body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#f5f6fa;color:#323338}
 .app-container{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .app-header{background:#1a3a5c;color:#fff;padding:7px 14px;display:flex;align-items:center;gap:10px;flex-shrink:h0}
@@ -1304,7 +1304,7 @@ function attachToMonday(){
         datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateCol.id + '", value: "' + escapedVal + '") { id } }').catch(function(e){ console.warn('Date set error:', e); });
       }
 
-      datePromise.then(function(){
+      datePromise.then(async function(){
         var logoB64 = window._logob64 || '';
         if(!logoB64){var _lUrl=(document.getElementById('brand-logo')?document.getElementById('brand-logo').value.trim():'') || 'https://summitcabinets.ca/wp-content/uploads/2022/05/new-logo5.png';if(_lUrl){try{var _lr=await fetch('https://summit-estimate.netlify.app/.netlify/functions/fetch-logo?url='+encodeURIComponent(_lUrl));var _ld=await _lr.json();if(_ld&&_ld.b64){logoB64=_ld.b64;window._logob64=_ld.b64;}}catch(e){}}}
         var pdfBase64 = null;
