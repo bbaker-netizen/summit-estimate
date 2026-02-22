@@ -84,7 +84,7 @@ exports.handler = async (event) => {
 
     const operations = JSON.stringify({ query: mutation, variables: { file: null } });
     const map = JSON.stringify({ '0': ['variables.file'] });
-    const boundary = '--MondayBoundary' + Date.now();
+    const boundary = 'MondayBoundary' + Date.now();
 
     function makePart(name, value) {
       return Buffer.concat([
