@@ -630,7 +630,7 @@ textarea{resize:vertical;min-height:55px}
   var storedVer = localStorage.getItem('seAppVersion');
   if(storedVer !== APP_VER){
     // Remove stale default key from old versions
-    localStorage.removeItem('seData_default');
+    localStorage.removeItem('se2_default'); localStorage.removeItem('seData_default');
     localStorage.setItem('seAppVersion', APP_VER);
   }
 })();
@@ -643,7 +643,7 @@ function getStorageKey(){
   // Try URL param first (direct access), then SDK-set value, then 'default'
   const params = new URLSearchParams(window.location.search);
   const itemId = params.get('itemId') || params.get('item_id') || window._mondayItemId || 'default';
-  return 'seData_' + itemId;
+  return 'se2_' + itemId;
 }
 
 let canvas, ctx;
