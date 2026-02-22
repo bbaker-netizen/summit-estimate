@@ -1305,6 +1305,17 @@ function attachToMonday(){
       }
 
       datePromise.then(function(){
+        var rawLogoUrl=gv('brand-logo').trim();
+        return rawLogoUrl ? new Promise(function(res){
+          var img=new Image(); img.crossOrigin='anonymous';
+          img.onload=function(){
+            try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+            c.getContext('2d').drawImage(img,0,0);res(c.toDataURL('image/png'));}catch(e){res('');}
+          };
+          img.onerror=function(){res('');};
+          img.src=rawLogoUrl;
+        }) : Promise.resolve('');
+      }).then(function(logoB64){
         var pdfBase64 = null;
         try {
           var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
@@ -1393,11 +1404,10 @@ function attachToMonday(){
             // ── HEADER ───────────────────────────────────────────────
             var HDR=32;
             doc.setFillColor(26,58,92); doc.rect(0,0,pageW,HDR,'F');
-            var logoUrl = gv('brand-logo').trim();
             var textX = margin;
-            if(logoUrl){
+            if(logoB64){
               try {
-                doc.addImage(logoUrl,'PNG',margin,(HDR-24)/2,36,24,undefined,'FAST');
+                doc.addImage(logoB64,'PNG',margin,(HDR-24)/2,36,24,undefined,'FAST');
                 textX = margin+40;
               } catch(e){}
             }
