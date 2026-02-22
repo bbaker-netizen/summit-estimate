@@ -1255,49 +1255,54 @@ function attachToMonday(){
   if(!itemId){ alert('No itemId in URL. Open from a Monday.com lead row.'); return; }
 
   const clientEl = document.getElementById('p-client') || document.getElementById('project-name');
-  const clientName = (clientEl && clientEl.value.trim()) ? clientEl.value.trim() : 'Client';
+  const clientName = (clientEl && clientEl.value && clientEl.value.trim()) ? clientEl.value.trim() : 'Client';
 
   window.monday.api('{ items(ids:[' + itemId + ']){ subitems{ id } } }').then(function(countRes){
-    const count = (countRes && countRes.data && countRes.data.items && countRes.data.items[0] && countRes.data.items[0].subitems) ? countRes.data.items[0].subitems.length : 0;
-    const v = count + 1;
-    const subName = 'EST-' + v + ' – ' + clientName + ' – v' + v + ' [' + dateStr + ']';
+    var count = 0;
+    try { count = countRes.data.items[0].subitems.length; } catch(e){}
+    var v = count + 1;
+    var subName = 'EST-' + v + ' – ' + clientName + ' – v' + v + ' [' + dateStr + ']';
 
     window.monday.api('mutation { create_subitem(parent_item_id: ' + itemId + ', item_name: "' + subName + '") { id board { id columns { id title type } } } }').then(function(mutRes){
-      const sub = mutRes && mutRes.data && mutRes.data.create_subitem;
-      const subId = sub && sub.id;
-      if(!subId){ alert('Sub-item creation failed: ' + JSON.stringify(mutRes).substring(0,200)); return; }
+      var sub = null;
+      try { sub = mutRes.data.create_subitem; } catch(e){}
+      if(!sub || !sub.id){ alert('Sub-item creation failed: ' + JSON.stringify(mutRes).substring(0,150)); return; }
 
-      const subBoardId = sub.board && sub.board.id;
-      const cols = (sub.board && sub.board.columns) ? sub.board.columns : [];
-      const dateCol = cols.find(function(c){ return c.type === 'date' || (c.title && c.title.toLowerCase().indexOf('date') >= 0); });
-      const fileCol = cols.find(function(c){ return c.type === 'file' || (c.title && c.title.toLowerCase().indexOf('estimate doc') >= 0); });
+      var subId = sub.id;
+      var subBoardId = sub.board ? sub.board.id : null;
+      var cols = (sub.board && sub.board.columns) ? sub.board.columns : [];
+      var dateCol = null, fileCol = null;
+      for(var i=0;i<cols.length;i++){
+        if(!dateCol && (cols[i].type==='date' || (cols[i].title && cols[i].title.toLowerCase().indexOf('date')>=0))) dateCol = cols[i];
+        if(!fileCol && (cols[i].type==='file' || (cols[i].title && cols[i].title.toLowerCase().indexOf('estimate doc')>=0))) fileCol = cols[i];
+      }
 
       var datePromise = Promise.resolve();
       if(dateCol && subBoardId){
-        var dateValStr = '{\"date\":\"' + isoDate + '\"}';
-        datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateCol.id + '", value: "' + dateValStr + '") { id } }').catch(function(e){ console.warn('Date set error:', e); });
+        var dv = '{\\"date\\":\\"' + isoDate + '\\"}';
+        datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateCol.id + '", value: "' + dv + '") { id } }').catch(function(e){ console.warn('Date fail:', e); });
       }
 
       datePromise.then(function(){
         var pdfBase64 = null;
-        var JsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (window.jsPDF || null);
+        var JsPDF = null;
+        try { JsPDF = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF || null); } catch(e){}
         if(JsPDF){
           try {
             var pdfDoc = new JsPDF({ unit: 'pt', format: 'letter' });
-            var quoteEl = document.getElementById('tab-quote');
-            if(quoteEl){
-              pdfDoc.html(quoteEl, {
-                callback: function(fd){ callNetlify(subId, subName, fd.output('datauristring').split(',')[1], fileCol && fileCol.id, subBoardId); },
-                x: 20, y: 20, width: 570, windowWidth: quoteEl.scrollWidth || 800
-              });
-            } else {
-              pdfDoc.setFontSize(14); pdfDoc.text(subName, 40, 60);
-              callNetlify(subId, subName, pdfDoc.output('datauristring').split(',')[1], fileCol && fileCol.id, subBoardId);
-            }
-          } catch(e){ console.error('PDF err:', e); callNetlify(subId, subName, null, fileCol && fileCol.id, subBoardId); }
-        } else {
-          callNetlify(subId, subName, null, fileCol && fileCol.id, subBoardId);
+            // Use text-only PDF - no html() to avoid hanging on hidden elements
+            pdfDoc.setFontSize(18);
+            pdfDoc.text('Summit Estimate', 40, 50);
+            pdfDoc.setFontSize(14);
+            pdfDoc.text(subName, 40, 80);
+            pdfDoc.setFontSize(11);
+            pdfDoc.text('Client: ' + clientName, 40, 110);
+            pdfDoc.text('Date: ' + dateStr, 40, 130);
+            pdfDoc.text('Estimate: ' + (document.getElementById('p-estimate-num') ? document.getElementById('p-estimate-num').value : ''), 40, 150);
+            pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+          } catch(e){ console.error('PDF err:', e); }
         }
+        callNetlify(subId, subName, pdfBase64, fileCol ? fileCol.id : null, subBoardId);
       });
     }).catch(function(e){ alert('Mutation error: ' + e); });
   }).catch(function(e){ alert('Count error: ' + e); });
@@ -1309,21 +1314,20 @@ function attachToMonday(){
     });
     tp.then(function(token){
       if(!pdfBase64){
-        alert('✅ Estimate saved!\nSub-item: ' + subName + '\nDate set to today.\n(No PDF library)');
+        alert('✅ Estimate saved!\nSub-item: ' + subName + '\nDate set.\n(PDF: no library available)');
         return;
       }
+      var payload = { subitemId: subId, boardId: boardId, fileColId: fileColId, fileName: subName.replace(/[^a-zA-Z0-9 _\-]/g,'_') + '.pdf', pdfBase64: pdfBase64, token: token };
       fetch('https://summit-estimate.netlify.app/.netlify/functions/save-estimate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subitemId: subId, boardId: boardId, fileColId: fileColId, fileName: subName.replace(/[^a-zA-Z0-9 _\-]/g,'_') + '.pdf', pdfBase64: pdfBase64, token: token })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       }).then(function(r){ return r.json(); }).then(function(result){
         if(result && (result.success || result.fileId)){
-          alert('✅ Estimate saved!\nSub-item: ' + subName + '\nPDF attached to Estimate Doc.\nDate set.');
+          alert('✅ Estimate saved!\nSub-item: ' + subName + '\nPDF attached to Estimate Doc.\nDate set to today.');
         } else {
-          alert('⚠️ Sub-item created. Upload issue: ' + JSON.stringify(result).substring(0,150));
+          alert('⚠️ Sub-item + date saved.\nPDF issue: ' + JSON.stringify(result).substring(0,120));
         }
       }).catch(function(e){
-        alert('⚠️ Sub-item created. Relay error: ' + e + '\nSub-item: ' + subName);
+        alert('⚠️ Sub-item + date saved.\nRelay error: ' + e);
       });
     });
   }
