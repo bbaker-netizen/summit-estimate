@@ -1438,7 +1438,9 @@ function attachToMonday(){
   }
 
   if(!itemId){ restore(); showStatus('No item ID - open from Monday.com', true); return; }
-  if(!window.monday){ restore(); showStatus('Monday SDK not loaded', true); return; }
+  // Ensure SDK instance is initialized (mondaySdk() factory → window.monday)
+  if(!window.monday && window.mondaySdk){ window.monday = window.mondaySdk(); }
+  if(!window.monday){ restore(); showStatus('Monday SDK not loaded — open from Monday.com', true); return; }
 
   window.monday.api('{ items(ids:[' + itemId + ']){ subitems { id } } }').then(function(countRes){
     var count = 0;
@@ -1775,10 +1777,21 @@ function loadData(){
 
 // ========== SDK POLL ==========
 
+
+// ========== SDK INIT ==========
+// The monday-sdk-js sets window.mondaySdk (a factory), not window.monday directly.
+// We must call mondaySdk() to get the initialized instance.
+function initMondaySDK(){
+  if(window.mondaySdk && !window.monday){
+    window.monday = window.mondaySdk();
+  }
+}
+
 function waitForSDK(cb,tries){
   tries=tries||0;
+  initMondaySDK();
   if(window.monday){cb();return;}
-  if(window.monday===undefined&&tries>40){cb();return;}
+  if(tries>40){cb();return;}
   setTimeout(function(){waitForSDK(cb,tries+1);},100);
 }
 
@@ -1789,7 +1802,7 @@ function handleMondayContext(data){
   var newBoardId = String(data.boardId||'');
   if(!newItemId) return;
 
-  // If item changed, clear auto-populated fields so they refill
+  // If item changed, clear auto-populated fields so they refill from new item
   var itemChanged = (window._mondayItemId && window._mondayItemId !== newItemId);
   window._mondayItemId = newItemId;
   window._mondayBoardId = newBoardId;
@@ -1798,7 +1811,7 @@ function handleMondayContext(data){
   var legacyKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith('seData_'); });
   legacyKeys.forEach(function(lk){ localStorage.removeItem(lk); });
 
-  // If item switched, clear auto-populated fields so new item's data fills in
+  // If item switched, clear auto-populated fields so new item data fills in
   if(itemChanged){
     var clientEl = document.getElementById('p-client');
     var addrEl = document.getElementById('p-address');
@@ -1811,32 +1824,48 @@ function handleMondayContext(data){
   loadData();
 
   // Auto-populate CLIENT + ADDRESS from Monday item data
-  if(window.monday && window._mondayItemId){
-    window.monday.api('{ items(ids:['+window._mondayItemId+']){ id name column_values{ id text value } } }')
-      .then(function(res){
-        if(res&&res.data&&res.data.items&&res.data.items[0]){
-          var item = res.data.items[0];
-          var clientEl = document.getElementById('p-client');
-          if(clientEl && !clientEl.value) clientEl.value = item.name||'';
-          if(item.column_values){
-            item.column_values.forEach(function(cv){
-              var addrEl = document.getElementById('p-address');
-              if((cv.id==='text'||cv.id==='address') && cv.text && addrEl && !addrEl.value)
-                addrEl.value = cv.text;
-            });
-          }
-          saveData();
+  autoPopulateFromMonday();
+}
+
+function autoPopulateFromMonday(){
+  if(!window.monday || !window._mondayItemId) return;
+  window.monday.api('{ items(ids:['+window._mondayItemId+']){ id name column_values{ id text value } } }')
+    .then(function(res){
+      if(res&&res.data&&res.data.items&&res.data.items[0]){
+        var item = res.data.items[0];
+        var clientEl = document.getElementById('p-client');
+        if(clientEl && !clientEl.value) clientEl.value = item.name||'';
+        if(item.column_values){
+          item.column_values.forEach(function(cv){
+            var addrEl = document.getElementById('p-address');
+            if((cv.id==='text'||cv.id==='address') && cv.text && addrEl && !addrEl.value)
+              addrEl.value = cv.text;
+          });
         }
-      }).catch(function(){});
-  }
+        saveData();
+      }
+    }).catch(function(){});
 }
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
-  // loadData() is called after itemId is known from SDK
-  // Fallback: if SDK doesn't respond in 4s (standalone/direct mode), load with default key
+  // IMMEDIATELY read itemId from URL params (Monday passes it in the iframe URL)
+  // This ensures getStorageKey() works before the SDK context fires
+  var urlP = new URLSearchParams(window.location.search);
+  var urlItemId = urlP.get('itemId') || urlP.get('item_id') || '';
+  var urlBoardId = urlP.get('boardId') || urlP.get('board_id') || '';
+  if(urlItemId){
+    window._mondayItemId = urlItemId;
+    window._mondayBoardId = urlBoardId;
+  }
+
+  // Initialize SDK instance now (monday-sdk-js sets window.mondaySdk, not window.monday)
+  initMondaySDK();
+
+  // Fallback: if SDK doesn't respond in 4s load with whatever key we have (URL param or default)
   window._loadDataDone = false;
   setTimeout(function(){ if(!window._loadDataDone){ loadData(); } }, 4000);
+
   // Pre-load logo via Netlify proxy (avoids iframe CORS restriction)
   var logoUrl = 'https://summitcabinets.ca/wp-content/uploads/2024/03/summit-logo.png';
   setTimeout(function(){
@@ -1847,18 +1876,39 @@ document.addEventListener('DOMContentLoaded',()=>{
         .catch(function(){}); // silently ignore if proxy fails
     }
   }, 1500);
-  waitForSDK(function(){
-    if(window.monday){
-      // Initial context load
-      window.monday.get('context').then(function(r){
-        if(r&&r.data){ handleMondayContext(r.data); }
-      });
-      // React to item switches (user navigates to a different CRM lead)
-      window.monday.listen('context', function(r){
-        if(r&&r.data){ handleMondayContext(r.data); }
-      });
-    }
-  });
+
+  // If we already have itemId from URL, load immediately — don't wait for SDK
+  if(window._mondayItemId){
+    window._loadDataDone = true;
+    loadData();
+    // Then try SDK for listen + auto-populate
+    waitForSDK(function(){
+      if(window.monday){
+        // Get fresh context (in case URL params differ from actual context)
+        window.monday.get('context').then(function(r){
+          if(r&&r.data){ handleMondayContext(r.data); }
+        });
+        // React to item switches
+        window.monday.listen('context', function(r){
+          if(r&&r.data){ handleMondayContext(r.data); }
+        });
+        // Auto-populate from Monday item name/columns
+        autoPopulateFromMonday();
+      }
+    });
+  } else {
+    // No URL item ID — wait for SDK to provide context
+    waitForSDK(function(){
+      if(window.monday){
+        window.monday.get('context').then(function(r){
+          if(r&&r.data){ handleMondayContext(r.data); }
+        });
+        window.monday.listen('context', function(r){
+          if(r&&r.data){ handleMondayContext(r.data); }
+        });
+      }
+    });
+  }
     initCabinets();
   if(!document.getElementById('mat-tbody').children.length){
     addMatRow({name:'Blum Tandem 22" Slides',qty:6,unit:'pair',price:33,source:'Materials & Hardware Pricing board'});
