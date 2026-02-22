@@ -2,6 +2,8 @@ h<!DOCTYPE html>
 <html lang="en">
 <head>
       <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
@@ -9,7 +11,7 @@ h<!DOCTYPE html>
   
 <style>
       *{box-sizing:border-box;margin:0;padding:0}h
-body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:#f5f6fa;color:#323338}
+body{font-family:'Roboto',Arial,sans-serif;font-size:13px;background:#f5f6fa;color:#323338}
 .app-container{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .app-header{background:#1a3a5c;color:#fff;padding:7px 14px;display:flex;align-items:center;gap:10px;flex-shrink:h0}
 .app-header .logo-area{display:flex;align-items:center;gap:10px}
@@ -106,7 +108,27 @@ textarea{resize:vertical;min-height:55px}
   body{background:#fff}
   .card{border:none;padding:0;margin-bottom:12px}
 }
-</style>
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:768px){
+  .app-header{padding:5px 10px;}
+  .app-header h1{font-size:12px;}
+  .app-header .subtitle{display:none;}
+  .header-actions{gap:4px;}
+  .header-actions button{font-size:10px;padding:4px 8px;}
+  .tab-btn{font-size:10px;padding:5px 8px;}
+  .form-row,.form-row.three{grid-template-columns:1fr;}
+  .card{padding:8px;}
+  .tab-content{padding:6px;}
+  table{font-size:11px;}
+  table th,table td{padding:4px 3px;}
+  .quote-doc{padding:10px;}
+}
+@media(max-width:480px){
+  .tab-nav{flex-wrap:wrap;}
+  .tab-btn{font-size:9px;padding:4px 6px;}
+  .form-row,.form-row.three{grid-template-columns:1fr;}
+}</style>
 </head><body>
 <div class="app-container">
 
@@ -170,12 +192,49 @@ textarea{resize:vertical;min-height:55px}
   <div class="card">
     <div class="card-title">🎨 Box &amp; Panel Spec</div>
     <div class="form-row">
-      <div class="form-group"><label>Box Material</label><input id="p-box" value="5/8 White Melamine"></div>
-      <div class="form-group"><label>Panel Material</label><input id="p-panel" value="5/8 Oak Melamine"></div>
+      <div class="form-group"><label>Box Material</label><select id="p-box" style="width:100%">
+        <option value="5/8 White Melamine">5/8" White Melamine</option>
+        <option value="5/8 Birch Plywood">5/8" Birch Plywood</option>
+        <option value="3/4 Birch Plywood">3/4" Birch Plywood</option>
+        <option value="5/8 MDF">5/8" MDF</option>
+        <option value="3/4 MDF">3/4" MDF</option>
+        <option value="5/8 Maple Veneer Plywood">5/8" Maple Veneer Plywood</option>
+        <option value="Custom">Custom...</option>
+      </select></div>
+      <div class="form-group"><label>Panel Material</label><select id="p-panel" style="width:100%">
+        <option value="5/8 Oak Melamine">5/8" Oak Melamine</option>
+        <option value="5/8 White Melamine">5/8" White Melamine</option>
+        <option value="5/8 Birch Plywood">5/8" Birch Plywood</option>
+        <option value="3/4 Birch Plywood">3/4" Birch Plywood</option>
+        <option value="3/4 MDF">3/4" MDF</option>
+        <option value="5/8 Maple Veneer Plywood">5/8" Maple Veneer Plywood</option>
+        <option value="Custom">Custom...</option>
+      </select></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Door Style</label><input id="p-door" placeholder="Shaker / Slab / etc."></div>
-      <div class="form-group"><label>Species / Finish</label><input id="p-species" placeholder="Maple Painted / Oak Stained"></div>
+      <div class="form-group"><label>Door Style</label><select id="p-door" style="width:100%">
+        <option value="">— Select Door Style —</option>
+        <option value="Shaker">Shaker</option>
+        <option value="Slab">Slab</option>
+        <option value="Raised Panel">Raised Panel</option>
+        <option value="Recessed Panel">Recessed Panel</option>
+        <option value="Beadboard">Beadboard</option>
+        <option value="Glass Insert">Glass Insert</option>
+        <option value="Custom">Custom...</option>
+      </select></div>
+      <div class="form-group"><label>Species / Finish</label><select id="p-species" style="width:100%">
+        <option value="">— Select Species / Finish —</option>
+        <option value="Maple Painted">Maple — Painted</option>
+        <option value="Maple Stained">Maple — Stained</option>
+        <option value="Oak Stained">Oak — Stained</option>
+        <option value="Oak Painted">Oak — Painted</option>
+        <option value="Cherry Stained">Cherry — Stained</option>
+        <option value="Walnut Stained">Walnut — Stained</option>
+        <option value="MDF Painted">MDF — Painted</option>
+        <option value="Thermofoil White">Thermofoil — White</option>
+        <option value="Thermofoil Grey">Thermofoil — Grey</option>
+        <option value="Custom">Custom...</option>
+      </select></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Kitchen Kick Notch (H × D)</label><input id="p-kkick" value="2 5/8 × 4 3/4"></div>
@@ -193,7 +252,7 @@ textarea{resize:vertical;min-height:55px}
     <div class="card-title">🏢 Branding on Quote</div>
     <div class="form-row">
       <div class="form-group"><label>Company Logo URL (optional)</label><input id="brand-logo" placeholder="https://summitcabinets.ca/logo.png" oninput="updateLogoPreview()"></div>
-      <div class="form-group"><label>Brand Color</label><input type="color" id="brand-color" value="#1a3a5c" oninput="updateBrandColor()" style="height:32px;cursor:pointer"></div>
+      <div class="form-group"><label>Brand Colour</label><input type="color" id="brand-color" value="#1a3a5c" oninput="updateBrandColor()" style="height:32px;cursor:pointer"></div>
     </div>
     <div class="form-row three">
       <div class="form-group"><label>Company Name on Quote</label><input id="brand-name" value="Summit Cabinets &amp; Renovations"></div>
@@ -296,17 +355,61 @@ textarea{resize:vertical;min-height:55px}
     <div class="no-print" style="display:flex;gap:6px;margin-bottom:7px">
       <select id="mat-quick" style="flex:1;font-size:11px" onchange="quickAddMat(this)">
         <option value="">+ Quick add from price list...</option>
-        <option value="Blum Tandem 22in Slides|pair|33">Blum Tandem 22" Slides — $33/pr</option>
-        <option value="Blum Tandem 18in Slides|pair|28">Blum Tandem 18" Slides — $28/pr</option>
-        <option value="Blum Soft-Close Hinge|each|4.25">Blum Soft-Close Hinge — $4.25 ea</option>
-        <option value="SS Handle 5in CC|each|8.95">SS Handle 5" CC — $8.95 ea</option>
-        <option value="Crown Moulding|lft|12.50">Crown Moulding — $12.50/lft</option>
-        <option value="Light Rail|lft|8.75">Light Rail — $8.75/lft</option>
-        <option value="Undermount Sink Support|each|15">Undermount Sink Support — $15 ea</option>
-        <option value="Lazy Susan Hardware|set|45">Lazy Susan Hardware — $45/set</option>
-        <option value="Pull-Out Shelf Kit|each|65">Pull-Out Shelf — $65 ea</option>
-        <option value="Filler Strip 3in|each|18">Filler Strip 3" — $18 ea</option>
-        <option value="Soft-Close Drawer Box|each|42">Soft-Close Drawer Box — $42 ea</option>
+        <optgroup label="— Drawer Slides —">
+          <option value="Blum Tandem 15in Slides|pair|26">Blum Tandem 15" Slides — $26/pr</option>
+          <option value="Blum Tandem 18in Slides|pair|28">Blum Tandem 18" Slides — $28/pr</option>
+          <option value="Blum Tandem 21in Slides|pair|30">Blum Tandem 21" Slides — $30/pr</option>
+          <option value="Blum Tandem 22in Slides|pair|33">Blum Tandem 22" Slides — $33/pr</option>
+          <option value="Blum Tandem 27in Slides|pair|36">Blum Tandem 27" Slides — $36/pr</option>
+          <option value="Side Mount Slides 18in|pair|12">Side Mount Slides 18" — $12/pr</option>
+          <option value="Side Mount Slides 22in|pair|14">Side Mount Slides 22" — $14/pr</option>
+        </optgroup>
+        <optgroup label="— Hinges —">
+          <option value="Blum Soft-Close Hinge|each|4.25">Blum Soft-Close Hinge — $4.25 ea</option>
+          <option value="Blum Clip Top Hinge|each|5.50">Blum Clip Top Hinge — $5.50 ea</option>
+          <option value="Full Overlay Hinge|each|3.75">Full Overlay Hinge — $3.75 ea</option>
+          <option value="Half Overlay Hinge|each|3.50">Half Overlay Hinge — $3.50 ea</option>
+          <option value="Blum Hinge Plate|each|2.25">Blum Hinge Plate — $2.25 ea</option>
+        </optgroup>
+        <optgroup label="— Handles &amp; Knobs —">
+          <option value="SS Handle 3in CC|each|6.50">SS Handle 3" CC — $6.50 ea</option>
+          <option value="SS Handle 5in CC|each|8.95">SS Handle 5" CC — $8.95 ea</option>
+          <option value="SS Handle 8in CC|each|12.50">SS Handle 8" CC — $12.50 ea</option>
+          <option value="Bar Pull 128mm|each|9.75">Bar Pull 128mm — $9.75 ea</option>
+          <option value="Bar Pull 160mm|each|11.25">Bar Pull 160mm — $11.25 ea</option>
+          <option value="Round Knob|each|4.50">Round Knob — $4.50 ea</option>
+        </optgroup>
+        <optgroup label="— Mouldings &amp; Trim —">
+          <option value="Crown Moulding|lft|12.50">Crown Moulding — $12.50/lft</option>
+          <option value="Light Rail|lft|8.75">Light Rail — $8.75/lft</option>
+          <option value="Scribe Moulding|lft|6.50">Scribe Moulding — $6.50/lft</option>
+          <option value="Filler Strip 3in|each|18">Filler Strip 3" — $18 ea</option>
+          <option value="Filler Strip 6in|each|28">Filler Strip 6" — $28 ea</option>
+          <option value="Toe Kick|lft|7.50">Toe Kick — $7.50/lft</option>
+          <option value="Scribe Rail|lft|5.50">Scribe Rail — $5.50/lft</option>
+        </optgroup>
+        <optgroup label="— Organizers &amp; Accessories —">
+          <option value="Lazy Susan Hardware|set|45">Lazy Susan Hardware — $45/set</option>
+          <option value="Pull-Out Shelf Kit|each|65">Pull-Out Shelf Kit — $65 ea</option>
+          <option value="Pull-Out Trash|unit|185">Pull-Out Trash — $185/unit</option>
+          <option value="Soft-Close Drawer Box|each|42">Soft-Close Drawer Box — $42 ea</option>
+          <option value="Undermount Sink Support|each|15">Undermount Sink Support — $15 ea</option>
+          <option value="Rev-A-Shelf Base Pullout|each|120">Rev-A-Shelf Base Pullout — $120 ea</option>
+          <option value="Cutlery Insert|each|35">Cutlery Insert — $35 ea</option>
+          <option value="Utensil Divider|each|28">Utensil Divider — $28 ea</option>
+        </optgroup>
+        <optgroup label="— Sheet Goods —">
+          <option value="1/4 White Melamine Back|sheet|32">1/4" White Melamine Back — $32/sheet</option>
+          <option value="5/8 White Melamine|sheet|68">5/8" White Melamine — $68/sheet</option>
+          <option value="5/8 Birch Plywood|sheet|85">5/8" Birch Plywood — $85/sheet</option>
+          <option value="3/4 Birch Plywood|sheet|95">3/4" Birch Plywood — $95/sheet</option>
+          <option value="3/4 MDF|sheet|52">3/4" MDF — $52/sheet</option>
+        </optgroup>
+        <optgroup label="— Labour —">
+          <option value="Installation Labour|hr|85">Installation Labour — $85/hr</option>
+          <option value="Delivery|flat|150">Delivery — $150 flat</option>
+          <option value="Site Measure|flat|75">Site Measure — $75 flat</option>
+        </optgroup>
       </select>
       <button class="btn btn-outline btn-sm" onclick="addMatRow()">+ Custom Row</button>
     </div>
@@ -341,7 +444,7 @@ textarea{resize:vertical;min-height:55px}
   </div>
 
   <!-- BRANDED QUOTE PREVIEW -->
-  <div id="quote-doc" style="background:#fff;border-radius:8px;border:1px solid #e6e9ef;padding:24px;max-width:780px;margin:0 auto;font-family:'Segoe UI',Arial,sans-serif">
+  <div id="quote-doc" style="background:#fff;border-radius:8px;border:1px solid #e6e9ef;padding:24px;max-width:780px;margin:0 auto;font-family:'Roboto',Arial,sans-serif">
     <!-- Quote Header -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:3px solid" id="quote-header-bar">
       <div style="display:flex;align-items:center;gap:12px">
@@ -553,20 +656,44 @@ function switchTab(id, btn){
 
 // ========== BRANDING ==========
 function updateLogoPreview(){
-  const url = document.getElementById('brand-logo').value.trim();
-  const box = document.getElementById('logo-img-wrap');
-  const qbox = document.getElementById('quote-logo-box');
-  if(url){
-    const img = '<img src="'+url+'" style="width:100%;height:100%;object-fit:contain;border-radius:6px">';
-    box.innerHTML = img; qbox.innerHTML = img;
-  } else {
-    box.innerHTML='SC'; qbox.innerHTML='SC';
+  const url=(document.getElementById('brand-logo')||{}).value||"".trim();
+  const imgHtml=url?'<img src="'+url+'" style="width:100%;height:100%;object-fit:contain;border-radius:6px">':'SC';
+  // Update app header logo box
+  const hdrBox=document.querySelector('.app-header .logo-box');
+  if(hdrBox){
+    if(url){ hdrBox.innerHTML='<img src="'+url+'" style="width:32px;height:32px;object-fit:contain;border-radius:4px">'; }
+    else{ hdrBox.textContent='SC'; }
+  }
+  // Update quote logo box
+  const qbox=document.getElementById('quote-logo-box');
+  if(qbox) qbox.innerHTML=imgHtml;
+  // Update logo-img-wrap if exists
+  const wrap=document.getElementById('logo-img-wrap');
+  if(wrap) wrap.innerHTML=imgHtml;
+  // Cache logo for PDF
+  if(url && url!==window._lastLogoUrl){
+    window._lastLogoUrl=url;
+    window._logob64='';
+    fetch('https://summit-estimate.netlify.app/.netlify/functions/fetch-logo?url='+encodeURIComponent(url))
+      .then(r=>r.json())
+      .then(d=>{if(d&&d.b64){window._logob64=d.b64;}})
+      .catch(()=>{});
   }
 }
 function updateBrandColor(){
-  const c = document.getElementById('brand-color').value;
-  document.getElementById('quote-header-bar').style.borderColor = c;
-  document.querySelectorAll('.quote-line.total').forEach(el=>el.style.color=c);
+  const c=document.getElementById('brand-color').value;
+  // Update quote preview
+  const qhb=document.getElementById('quote-header-bar');
+  if(qhb) qhb.style.backgroundColor=c;
+  document.querySelectorAll('.quote .line-total').forEach(el=>el.style.color=c);
+  // Update app header
+  const appHdr=document.querySelector('.app-header');
+  if(appHdr) appHdr.style.backgroundColor=c;
+  // Update tab active border
+  document.querySelectorAll('.tab-btn.active').forEach(btn=>btn.style.borderBottomColor=c);
+  // Update quote logo box bg
+  const qlb=document.querySelector('.quote-logo-box');
+  if(qlb) qlb.style.borderColor=c;
 }
 
 // ========== CANVAS INIT ==========
@@ -1064,7 +1191,7 @@ function updateMatTotal(inp){
   row.querySelector('.mat-total').textContent=price?(('$'+(qty*price).toFixed(2))):'—';
 }
 
-const CT_RATES={'Quartz Level A':38,'Quartz Level B':66,'Granite':55,'Laminate':25};
+const CT_RATES={'Quartz Level A':38,'Quartz Level B':66,'Quartz Level C':95,'Granite Standard':55,'Granite Premium':75,'Marble':110,'Quartzite':95,'Laminate':25,'Butcher Block':62,'Porcelain Slab':85,'Concrete':120,'Dekton':130};
 function addCtRow(){
   const tb=document.getElementById('ct-tbody');
   const tr=document.createElement('tr');
@@ -1635,7 +1762,29 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }, 1500);
   waitForSDK(function(){
-    if(window.monday){window.monday.get('context').then(r=>{if(r&&r.data){window._mondayItemId=String(r.data.itemId||'');window._mondayBoardId=String(r.data.boardId||'');}});}
+    if(window.monday){window.monday.get('context').then(r=>{
+      if(r&&r.data){
+        window._mondayItemId=String(r.data.itemId||'');
+        window._mondayBoardId=String(r.data.boardId||'');
+        // Auto-populate fields from Monday item if not already filled
+        if(window._mondayItemId&&window._mondayItemId!==''){
+          window.monday.api('{ items(ids:['+window._mondayItemId+']){ id name column_values{ id text } board{ id name } } }')
+            .then(res=>{
+              if(res&&res.data&&res.data.items&&res.data.items[0]){
+                const item=res.data.items[0];
+                const clientEl=document.getElementById('p-client');
+                if(clientEl&&!clientEl.value) clientEl.value=item.name||'';
+                // Auto-fill other fields if blank
+                item.column_values&&item.column_values.forEach(cv=>{
+                  if(cv.id==='text' && cv.text && !document.getElementById('p-address').value)
+                    document.getElementById('p-address').value=cv.text;
+                });
+                saveData();
+              }
+            }).catch(()=>{});
+        }
+      }
+    });
   });
   initCabinets();
   if(!document.getElementById('mat-tbody').children.length){
