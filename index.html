@@ -1751,7 +1751,10 @@ function waitForSDK(cb,tries){
 }
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
-  loadData();
+  // loadData() is called by waitForSDK after itemId is known
+  // Fallback: if SDK doesn't respond in 2s (standalone mode), load with default
+  window._loadDataDone = false;
+  setTimeout(function(){ if(!window._loadDataDone){ loadData(); } }, 2000);
   // Pre-load logo via Netlify proxy (avoids iframe CORS restriction)
   window._logob64 = '';
   setTimeout(function(){
@@ -1770,6 +1773,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           window._mondayItemId = String(r.data.itemId||'');
           window._mondayBoardId = String(r.data.boardId||'');
           // Reload saved data for THIS item (per-item isolation)
+          window._loadDataDone = true;
           loadData();
           // Auto-populate fields from Monday item if still blank
           if(window._mondayItemId && window._mondayItemId !== 'default'){
