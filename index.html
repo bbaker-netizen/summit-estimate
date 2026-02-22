@@ -1327,6 +1327,7 @@ function attachToMonday(){
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             subitemId: subId,
+            parentItemId: itemId,
             boardId: subBoardId,
             fileColId: fileCol ? fileCol.id : null,
             fileName: subName.replace(/[^a-zA-Z0-9 _-]/g, '_') + '.pdf',
