@@ -1288,8 +1288,8 @@ function attachToMonday(){
     return window.monday.api('mutation { create_subitem(parent_item_id: ' + itemId + ', item_name: "' + subName.replace(/"/g, '\"') + '") { id board { id columns { id title type } } } }').then(function(subRes){
       var sub = subRes && subRes.data && subRes.data.create_subitem;
       if(!sub || !sub.id){ showStatus('Sub-item creation failed', true); restore(); return; }
-      var subId = sub.id;
-      var subBoardId = sub.board ? sub.board.id : null;
+      var subId = +sub.id;
+      var subBoardId = sub.board ? +sub.board.id : null;
       var cols = (sub.board && sub.board.columns) ? sub.board.columns : [];
       var dateCol = null, fileCol = null;
       for(var i = 0; i < cols.length; i++){
