@@ -1306,15 +1306,27 @@ function attachToMonday(){
 
       datePromise.then(function(){
         var rawLogoUrl=gv('brand-logo').trim();
-        return rawLogoUrl ? new Promise(function(res){
-          var img=new Image(); img.crossOrigin='anonymous';
-          img.onload=function(){
-            try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
-            c.getContext('2d').drawImage(img,0,0);res(c.toDataURL('image/png'));}catch(e){res('');}
-          };
-          img.onerror=function(){res('');};
-          img.src=rawLogoUrl;
-        }) : Promise.resolve('');
+        if(!rawLogoUrl){ return Promise.resolve(''); }
+        return fetch(rawLogoUrl).then(function(r){ return r.blob(); }).then(function(blob){
+          return new Promise(function(res){
+            var reader=new FileReader();
+            reader.onload=function(){ res(reader.result||''); };
+            reader.onerror=function(){ res(''); };
+            reader.readAsDataURL(blob);
+          });
+        }).catch(function(){
+          return new Promise(function(res){
+            var done=false; var img=new Image();
+            var timer=setTimeout(function(){ if(!done){done=true;res('');} },4000);
+            img.onload=function(){
+              if(done) return; done=true; clearTimeout(timer);
+              try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+              c.getContext('2d').drawImage(img,0,0);res(c.toDataURL('image/png'));}catch(e){res('');}
+            };
+            img.onerror=function(){ if(!done){done=true;clearTimeout(timer);res('');} };
+            img.src=rawLogoUrl;
+          });
+        });
       }).then(function(logoB64){
         var pdfBase64 = null;
         try {
