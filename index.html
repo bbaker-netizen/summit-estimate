@@ -1836,6 +1836,7 @@ function collectCtRows(){
   return rows;
 }
 function loadData(){
+  loadBrandGlobally();
   try{
     const raw=localStorage.getItem(getStorageKey());
     if(!raw) return;
@@ -1873,9 +1874,7 @@ function loadData(){
     }
 
     window._loadDataDone = true;
-    loadBrandGlobally();
-
-  }catch(e){}
+    }catch(e){}
 }
 
 
@@ -2004,7 +2003,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Fallback: if SDK doesn't respond in 4s load with whatever key we have (URL param or default)
   window._loadDataDone = false;
-  setTimeout(function(){ if(!window._loadDataDone){ loadData(); } }, 4000);
+  setTimeout(function(){ if(!window._loadDataDone){ loadData(); }
+        loadBrandGlobally(); }, 4000);
 
   // Pre-load logo via Netlify proxy (avoids iframe CORS restriction)
   var logoUrl = 'https://summitcabinets.ca/wp-content/uploads/2024/03/summit-logo.png';
