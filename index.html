@@ -206,7 +206,9 @@ textarea{resize:vertical;min-height:55px}
     <div class="card-title">🎨 Box &amp; Panel Spec</div>
     <div class="form-row">
       <div class="form-group"><label>Box Material</label><select id="p-box" style="width:100%">
-        <option value="5/8 White Melamine">5/8" White Melamine</option>
+        
+        <option value="" selected>&mdash; Select Box Material &mdash;</option>
+<option value="5/8 White Melamine">5/8" White Melamine</option>
         <option value="5/8 Birch Plywood">5/8" Birch Plywood</option>
         <option value="3/4 Birch Plywood">3/4" Birch Plywood</option>
         <option value="5/8 MDF">5/8" MDF</option>
@@ -215,7 +217,9 @@ textarea{resize:vertical;min-height:55px}
         <option value="Custom">Custom...</option>
       </select></div>
       <div class="form-group"><label>Panel Material</label><select id="p-panel" style="width:100%">
-        <option value="5/8 Oak Melamine">5/8" Oak Melamine</option>
+        
+        <option value="" selected>&mdash; Select Panel Material &mdash;</option>
+<option value="5/8 Oak Melamine">5/8" Oak Melamine</option>
         <option value="5/8 White Melamine">5/8" White Melamine</option>
         <option value="5/8 Birch Plywood">5/8" Birch Plywood</option>
         <option value="3/4 Birch Plywood">3/4" Birch Plywood</option>
@@ -250,8 +254,8 @@ textarea{resize:vertical;min-height:55px}
       </select></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Kitchen Kick Notch (H × D)</label><input id="p-kkick" value="2 5/8 × 4 3/4"></div>
-      <div class="form-group"><label>Vanity Kick Notch (H × D)</label><input id="p-vkick" value="2 3/8 × 7"></div>
+      <div class="form-group"><label>Kitchen Kick Notch (H × D)</label><input id="p-kkick" value="" placeholder="e.g. 2 5/8 x 4 3/4"></div>
+      <div class="form-group"><label>Vanity Kick Notch (H × D)</label><input id="p-vkick" value="" placeholder="e.g. 2 3/8 x 7"></div>
     </div>
   </div>
   <div class="card">
@@ -636,7 +640,7 @@ textarea{resize:vertical;min-height:55px}
 // On EVERY load: purge ALL legacy seData_ keys (old JS wrote these; new JS uses se2_ prefix)
 // This ensures old cached Monday.com iframe JS cannot poison new data
 (function(){
-  var APP_VER = '2.5';
+  var APP_VER = '2.6';
   // Always nuke all legacy seData_ keys unconditionally
   var keysToRemove = [];
   for(var i=0; i<localStorage.length; i++){
@@ -1099,16 +1103,11 @@ const DB_CAB_PRICES = {
   'Island - Shaker - Hickory - Stained':310
 };
 function initCabinets(){
-  // Maruszczyk demo data - pre-loaded from site measure (Feb 2026)
-  [{code:'C01',loc:'Main floor vanity',w:'35 1/2',h:'31 1/4',d:'21 1/8',fin:'Left',door:'Shaker',type:'Base - Shaker - Oak - Stained',notes:'Finished left',price:310},
-   {code:'C02',loc:'Basement vanity',w:'31 5/8',h:'31 1/4',d:'21 1/8',fin:'Right',door:'Shaker',type:'Base - Shaker - Oak - Stained',notes:'Finished right',price:310},
-   {code:'C03',loc:'Master vanity',w:'31 1/2',h:'31',d:'21 1/8',fin:'Right',door:'Shaker',type:'Base - Shaker - Oak - Stained',notes:'Finished right',price:310},
-   {code:'C04',loc:'Kitchen left of stove',w:'15 3/4',h:'35',d:'24',fin:'',door:'Shaker',type:'Base - Shaker - Maple - Painted',notes:'',price:285},
-   {code:'C05',loc:'Kitchen sink',w:'',h:'35',d:'',fin:'',door:'Shaker',type:'Base - Shaker - Maple - Painted',notes:'No parts - sink only',price:285},
-   {code:'C06',loc:'Kitchen left of sink',w:'23 5/8',h:'35',d:'12 1/2',fin:'',door:'Shaker',type:'Upper - Shaker - Oak - Stained',notes:'See pic',price:220}
-  ].forEach(c => addCabRow(c));
-  [{code:'P01',desc:'Island Panel DW',w:'24',h:'35'},{code:'P02',desc:'Island Panel',w:'36',h:'35'},{code:'P03',desc:'Island Panel',w:'45',h:'35'}].forEach(c => addPanelRow(c));
-  [{code:'K01',loc:'Kitchen',size:'2 5/8 x 4 3/4',qty:20},{code:'K02',loc:'Vanity',size:'2 3/8 x 7',qty:9}].forEach(c => addKickRow(c));
+  // v2.6: No demo data — start with empty tables
+  // Add one blank row to each section so the UI isn't completely empty
+  if(!document.getElementById('cab-tbody').children.length) addCabRow({});
+  if(!document.getElementById('panel-tbody').children.length) addPanelRow({});
+  if(!document.getElementById('kick-tbody').children.length) addKickRow({});
 }
 
 function mkDel(){ return `<button class="btn btn-danger btn-sm no-print" onclick="this.closest('tr').remove();calcQuote()">&#x2715;</button>`; }
@@ -1226,19 +1225,25 @@ function updateMatTotal(inp){
 }
 
 const CT_RATES={'Quartz Level A':38,'Quartz Level B':66,'Quartz Level C':95,'Granite Standard':55,'Granite Premium':75,'Marble':110,'Quartzite':95,'Laminate':25,'Butcher Block':62,'Porcelain Slab':85,'Concrete':120,'Dekton':130};
-function addCtRow(){
+function addCtRow(ct){
+  ct=ct||{};
   const tb=document.getElementById('ct-tbody');
   const tr=document.createElement('tr');
-  const opts=Object.entries(CT_RATES).map(([k,v])=>`<option data-rate="${v}">${k} ($${v}/sqft)</option>`).join('');
+  const opts=Object.entries(CT_RATES).map(([k,v])=>`<option value="${v}" ${ct.material && String(ct.material)===String(v) ? 'selected' : ''}>${k} ($${v}/sqft)</option>`).join('');
   tr.innerHTML=`
-    <td><input style="width:90px" placeholder="Kitchen"></td>
+    <td><input style="width:90px" placeholder="Kitchen" value="${ct.loc||''}"></td>
     <td><select style="width:155px" onchange="updateCtRate(this)">${opts}</select></td>
-    <td><input type="number" style="width:55px" placeholder="0" oninput="updateCtTotal(this)"></td>
+    <td><input type="number" style="width:55px" placeholder="0" oninput="updateCtTotal(this)" value="${ct.sqft||''}"></td>
     <td class="ct-rate" style="font-weight:700">$38.00</td>
-    <td style="font-size:9px;color:#00884a">📊 DB</td>
-    <td class="ct-total">—</td>
+    <td style="font-size:9px;color:#00884a">\ud83d\udcca DB</td>
+    <td class="ct-total">\u2014</td>
     <td>${mkDel()}</td>`;
   tb.appendChild(tr);
+  if(ct.material){
+    const sel=tr.querySelector('select');
+    if(sel){ sel.value=ct.material; updateCtRate(sel); }
+  }
+  if(ct.sqft) updateCtTotal(tr.querySelector('input[type="number"]'));
 }
 function updateCtRate(sel){
   const rate=sel.options[sel.selectedIndex].dataset.rate;
@@ -1757,12 +1762,66 @@ function saveData(){
       p:{client:getVal('p-client'),address:getVal('p-address'),estnum:getVal('p-estnum'),date:getVal('p-date'),status:getVal('p-status'),estimator:getVal('p-estimator'),pm:getVal('p-pm'),scope:getVal('p-scope'),notes:getVal('p-notes'),box:getVal('p-box'),panel:getVal('p-panel'),door:getVal('p-door'),species:getVal('p-species'),kkick:getVal('p-kkick'),vkick:getVal('p-vkick')},
       brand:{logo:getVal('brand-logo'),color:getVal('brand-color'),name:getVal('brand-name'),phone:getVal('brand-phone'),web:getVal('brand-web'),footer:getVal('brand-footer')},
       markup:getVal('markup-pct'),gst:getVal('gst-pct'),
-      scale:{px:scalePxPerUnit,unit:scaleUnit}
+      scale:{px:scalePxPerUnit,unit:scaleUnit},
+      cabinets:collectCabRows(),
+      panels:collectPanelRows(),
+      kicks:collectKickRows(),
+      materials:collectMatRows(),
+      countertops:collectCtRows()
     };
     localStorage.setItem(getStorageKey(),JSON.stringify(d));
     const btn=document.querySelector('.btn-outline');
-    if(btn&&btn.textContent.includes('Save')){btn.textContent='✅ Saved!'; setTimeout(()=>btn.textContent='💾 Save',1600);}
+    if(btn&&btn.textContent.includes('Save')){btn.textContent='\u2705 Saved!'; setTimeout(()=>btn.textContent='\ud83d\udcbe Save',1600);}
   }catch(e){}
+}
+
+// --- v2.6: Collect table row data for per-item persistence ---
+function collectCabRows(){
+  const rows=[];
+  document.querySelectorAll('#cab-tbody tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    const selects=tr.querySelectorAll('select');
+    if(inputs.length<2) return;
+    rows.push({code:inputs[0]?.value||'',loc:inputs[1]?.value||'',w:inputs[2]?.value||'',h:inputs[3]?.value||'',d:inputs[4]?.value||'',fin:selects[0]?.value||'',door:inputs[5]?.value||'',type:selects[1]?.value||'',notes:inputs[6]?.value||'',price:inputs[7]?.value||''});
+  });
+  return rows;
+}
+function collectPanelRows(){
+  const rows=[];
+  document.querySelectorAll('#panel-tbody tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    if(inputs.length<2) return;
+    rows.push({code:inputs[0]?.value||'',desc:inputs[1]?.value||'',w:inputs[2]?.value||'',h:inputs[3]?.value||'',price:inputs[4]?.value||''});
+  });
+  return rows;
+}
+function collectKickRows(){
+  const rows=[];
+  document.querySelectorAll('#kick-tbody tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    if(inputs.length<2) return;
+    rows.push({code:inputs[0]?.value||'',desc:inputs[1]?.value||'',ft:inputs[2]?.value||'',ht:inputs[3]?.value||'',pft:inputs[4]?.value||''});
+  });
+  return rows;
+}
+function collectMatRows(){
+  const rows=[];
+  document.querySelectorAll('#mat-tbody tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    if(inputs.length<2) return;
+    rows.push({name:inputs[0]?.value||'',qty:inputs[1]?.value||'',unit:inputs[2]?.value||'',price:inputs[3]?.value||''});
+  });
+  return rows;
+}
+function collectCtRows(){
+  const rows=[];
+  document.querySelectorAll('#ct-tbody tr').forEach(tr=>{
+    const locInput=tr.querySelector('input');
+    const sel=tr.querySelector('select');
+    const numInputs=tr.querySelectorAll('input[type="number"]');
+    rows.push({loc:locInput?.value||'',material:sel?.value||'',sqft:numInputs[0]?.value||''});
+  });
+  return rows;
 }
 function loadData(){
   try{
@@ -1778,8 +1837,31 @@ function loadData(){
     if(d.scale&&d.scale.px){scalePxPerUnit=d.scale.px;scaleUnit=d.scale.unit||'in';const el=document.getElementById('scale-display');if(el)el.textContent='Scale: 1'+scaleUnit+'='+scalePxPerUnit.toFixed(1)+'px';}
     if(d.brand&&d.brand.logo) updateLogoPreview();
     if(d.brand&&d.brand.color) updateBrandColor();
+
+    // v2.6: Restore cabinet/material/countertop rows from saved data
+    if(d.cabinets && d.cabinets.length){
+      document.getElementById('cab-tbody').innerHTML='';
+      d.cabinets.forEach(c=>addCabRow(c));
+    }
+    if(d.panels && d.panels.length){
+      document.getElementById('panel-tbody').innerHTML='';
+      d.panels.forEach(c=>addPanelRow(c));
+    }
+    if(d.kicks && d.kicks.length){
+      document.getElementById('kick-tbody').innerHTML='';
+      d.kicks.forEach(c=>addKickRow(c));
+    }
+    if(d.materials && d.materials.length){
+      document.getElementById('mat-tbody').innerHTML='';
+      d.materials.forEach(m=>addMatRow(m));
+    }
+    if(d.countertops && d.countertops.length){
+      document.getElementById('ct-tbody').innerHTML='';
+      d.countertops.forEach(c=>addCtRow(c));
+    }
+
     window._loadDataDone = true;
-}catch(e){}
+  }catch(e){}
 }
 
 // ========== SDK POLL ==========
@@ -1918,8 +2000,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
     initCabinets();
   if(!document.getElementById('mat-tbody').children.length){
-    addMatRow({name:'Blum Tandem 22" Slides',qty:6,unit:'pair',price:33,source:'Materials & Hardware Pricing board'});
-    addMatRow({name:'Blum Soft-Close Hinges',qty:12,unit:'each',price:4.25,source:'Materials & Hardware Pricing board'});
+    addMatRow({});
     addCtRow();
   }
   const d=document.getElementById('p-date');
