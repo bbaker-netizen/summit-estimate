@@ -1229,13 +1229,14 @@ function addCtRow(ct){
   ct=ct||{};
   const tb=document.getElementById('ct-tbody');
   const tr=document.createElement('tr');
-  const opts=Object.entries(CT_RATES).map(([k,v])=>`<option value="${v}" ${ct.material && String(ct.material)===String(v) ? 'selected' : ''}>${k} ($${v}/sqft)</option>`).join('');
+  const opts='<option value="" data-rate="0">&mdash; Select Material &mdash;</option>' + Object.entries(CT_RATES).map(([k,v])=>`<option value="${v}" data-rate="${v}" ${ct.material && String(ct.material)===String(v) ? 'selected' : ''}>${k} ($${v}/sqft)</option>`).join('');
+  const hasMat = ct.material && ct.material !== '';
   tr.innerHTML=`
     <td><input style="width:90px" placeholder="Kitchen" value="${ct.loc||''}"></td>
     <td><select style="width:155px" onchange="updateCtRate(this)">${opts}</select></td>
     <td><input type="number" style="width:55px" placeholder="0" oninput="updateCtTotal(this)" value="${ct.sqft||''}"></td>
-    <td class="ct-rate" style="font-weight:700">$38.00</td>
-    <td style="font-size:9px;color:#00884a">\ud83d\udcca DB</td>
+    <td class="ct-rate" style="font-weight:700">${hasMat ? '$'+parseFloat(ct.material).toFixed(2) : '\u2014'}</td>
+    <td style="font-size:9px;color:#00884a">${hasMat ? '\ud83d\udcca DB' : ''}</td>
     <td class="ct-total">\u2014</td>
     <td>${mkDel()}</td>`;
   tb.appendChild(tr);
@@ -1246,9 +1247,19 @@ function addCtRow(ct){
   if(ct.sqft) updateCtTotal(tr.querySelector('input[type="number"]'));
 }
 function updateCtRate(sel){
-  const rate=sel.options[sel.selectedIndex].dataset.rate;
-  sel.closest('tr').querySelector('.ct-rate').textContent='$'+parseFloat(rate).toFixed(2);
-  updateCtTotal(sel.closest('tr').querySelector('input[type=number]'));
+  const opt=sel.options[sel.selectedIndex];
+  const rate=opt?.dataset?.rate||'0';
+  const tr=sel.closest('tr');
+  const rateCell=tr.querySelector('.ct-rate');
+  const srcCell=tr.querySelector('td:nth-child(5)');
+  if(!sel.value || sel.value===''){
+    rateCell.textContent='\u2014';
+    if(srcCell) srcCell.innerHTML='';
+  } else {
+    rateCell.textContent='$'+parseFloat(rate).toFixed(2);
+    if(srcCell) srcCell.innerHTML='<span style="font-size:9px;color:#00884a">\ud83d\udcca DB</span>';
+  }
+  updateCtTotal(tr.querySelector('input[type="number"]'));
 }
 function updateCtTotal(inp){
   const row=inp.closest('tr');
