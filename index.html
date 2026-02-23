@@ -619,7 +619,7 @@ textarea{resize:vertical;min-height:55px}
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
       <button class="btn btn-outline" onclick="cancelScale()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmScale()">Set Scale</button>
+      <button class="btn btn-primary" onclick="confirmScale()">Set Scale</button>h'2.6'
     </div>
   </div>
 </div>
@@ -640,7 +640,7 @@ textarea{resize:vertical;min-height:55px}
 // On EVERY load: purge ALL legacy seData_ keys (old JS wrote these; new JS uses se2_ prefix)
 // This ensures old cached Monday.com iframe JS cannot poison new data
 (function(){
-  var APP_VER = '2.6';
+  var '2.7' = '2.6';
   // Always nuke all legacy seData_ keys unconditionally
   var keysToRemove = [];
   for(var i=0; i<localStorage.length; i++){
@@ -650,9 +650,9 @@ textarea{resize:vertical;min-height:55px}
   for(var j=0; j<keysToRemove.length; j++) localStorage.removeItem(keysToRemove[j]);
   // Version bump: also clear se2_default on version mismatch
   var storedVer = localStorage.getItem('seAppVersion');
-  if(storedVer !== APP_VER){
+  if(storedVer !== '2.7'){
     localStorage.removeItem('se2_default');
-    localStorage.setItem('seAppVersion', APP_VER);
+    localStorage.setItem('seAppVersion', '2.7');
   }
 })();
 
@@ -1771,7 +1771,7 @@ function saveData(){
   try{
     const d={
       p:{client:getVal('p-client'),address:getVal('p-address'),estnum:getVal('p-estnum'),date:getVal('p-date'),status:getVal('p-status'),estimator:getVal('p-estimator'),pm:getVal('p-pm'),scope:getVal('p-scope'),notes:getVal('p-notes'),box:getVal('p-box'),panel:getVal('p-panel'),door:getVal('p-door'),species:getVal('p-species'),kkick:getVal('p-kkick'),vkick:getVal('p-vkick')},
-      brand:{logo:getVal('brand-logo'),color:getVal('brand-color'),name:getVal('brand-name'),phone:getVal('brand-phone'),web:getVal('brand-web'),footer:getVal('brand-footer')},
+
       markup:getVal('markup-pct'),gst:getVal('gst-pct'),
       scale:{px:scalePxPerUnit,unit:scaleUnit},
       cabinets:collectCabRows(),
@@ -1843,11 +1843,11 @@ function loadData(){
     const p=d.p||{};
     const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined&&v!==null)el.value=v;};
     Object.entries(p).forEach(([k,v])=>s('p-'+k,v));
-    if(d.brand){const b=d.brand; s('brand-logo',b.logo);s('brand-color',b.color);s('brand-name',b.name);s('brand-phone',b.phone);s('brand-web',b.web);s('brand-footer',b.footer);}
+    if(b){s('brand-logo',b.logo);s('brand-color',b.color);s('brand-name',b.name);s('brand-phone',b.phone);s('brand-web',b.web);s('brand-footer',b.footer);}
     s('markup-pct',d.markup); s('gst-pct',d.gst);
     if(d.scale&&d.scale.px){scalePxPerUnit=d.scale.px;scaleUnit=d.scale.unit||'in';const el=document.getElementById('scale-display');if(el)el.textContent='Scale: 1'+scaleUnit+'='+scalePxPerUnit.toFixed(1)+'px';}
-    if(d.brand&&d.brand.logo) updateLogoPreview();
-    if(d.brand&&d.brand.color) updateBrandColor();
+    if(b&&b.logo) updateLogoPreview();
+    if(b&&b.color) updateBrandColor();
 
     // v2.6: Restore cabinet/material/countertop rows from saved data
     if(d.cabinets && d.cabinets.length){
