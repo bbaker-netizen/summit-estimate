@@ -640,7 +640,7 @@ textarea{resize:vertical;min-height:55px}
 // On EVERY load: purge ALL legacy seData_ keys (old JS wrote these; new JS uses se2_ prefix)
 // This ensures old cached Monday.com iframe JS cannot poison new data
 (function(){
-  var APP_VER = '2.7';
+  var APP_VER = '2.7.2';
   // Always nuke all legacy seData_ keys unconditionally
   var keysToRemove = [];
   for(var i=0; i<localStorage.length; i++){
@@ -1889,15 +1889,17 @@ function saveBrandGlobally() {
             web: (document.getElementById('brand-web') || {}).value || '',
             footer: (document.getElementById('brand-footer') || {}).value || ''
         };
+        // Save to localStorage as fallback (works outside Monday iframe)
         localStorage.setItem('se2_brand_global', JSON.stringify(brand));
+        // Save to Monday SDK storage (works globally across all items/devices)
+        if (window.monday) {
+            window.monday.storage.instance.setItem('se2_brand_global', JSON.stringify(brand)).catch(function(){});
+        }
     } catch(e) {}
 }
 
 function loadBrandGlobally() {
-    try {
-        var raw = localStorage.getItem('se2_brand_global');
-        if (!raw) return;
-        var brand = JSON.parse(raw);
+    function applyBrand(brand) {
         if (!brand) return;
         var s = function(id, v) {
             var el = document.getElementById(id);
@@ -1911,6 +1913,29 @@ function loadBrandGlobally() {
         s('brand-footer', brand.footer);
         if (brand.logo) updateLogoPreview();
         if (brand.color) updateBrandColor();
+    }
+    try {
+        // Try Monday SDK storage first (global across all items/devices)
+        if (window.monday) {
+            window.monday.storage.instance.getItem('se2_brand_global').then(function(res) {
+                var val = res && res.data && res.data.value;
+                if (val) {
+                    try { applyBrand(JSON.parse(val)); } catch(e) {}
+                } else {
+                    // Fallback to localStorage
+                    var raw = localStorage.getItem('se2_brand_global');
+                    if (raw) try { applyBrand(JSON.parse(raw)); } catch(e) {}
+                }
+            }).catch(function() {
+                // Fallback to localStorage
+                var raw = localStorage.getItem('se2_brand_global');
+                if (raw) try { applyBrand(JSON.parse(raw)); } catch(e) {}
+            });
+        } else {
+            // No Monday SDK — use localStorage directly
+            var raw = localStorage.getItem('se2_brand_global');
+            if (raw) try { applyBrand(JSON.parse(raw)); } catch(e) {}
+        }
     } catch(e) {}
 }
 
