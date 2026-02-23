@@ -1848,7 +1848,28 @@ function loadData(){
     if(d.scale&&d.scale.px){scalePxPerUnit=d.scale.px;scaleUnit=d.scale.unit||'in';const el=document.getElementById('scale-display');if(el)el.textContent='Scale: 1'+scaleUnit+'='+scalePxPerUnit.toFixed(1)+'px';}
     if(b&&b.logo) updateLogoPreview();
     if(b&&b.color) updateBrandColor();
-
+// --- ISSUE 2 FIX: Global brand persistence ---
+  function saveBrandGlobally() {
+    const brand = {
+      logo: getVal('brand-logo'),
+      color: getVal('brand-color'),
+      name: getVal('brand-name'),
+      phone: getVal('brand-phone'),
+      web: getVal('brand-web'),
+      footer: getVal('brand-footer')
+    };
+    localStorage.setItem('se2_brand_global', JSON.stringify(brand));
+  }
+  function loadBrandGlobally() {
+    const brand = JSON.parse(localStorage.getItem('se2_brand_global') || '{}');
+    if (brand.logo) setVal('brand-logo', brand.logo);
+    if (brand.color) setVal('brand-color', brand.color);
+    if (brand.name) setVal('brand-name', brand.name);
+    if (brand.phone) setVal('brand-phone', brand.phone);
+    if (brand.web) setVal('brand-web', brand.web);
+    if (brand.footer) setVal('brand-footer', brand.footer);
+  }
+  // --- End Issue 2 fix ---
     // v2.6: Restore cabinet/material/countertop rows from saved data
     if(d.cabinets && d.cabinets.length){
       document.getElementById('cab-tbody').innerHTML='';
@@ -2017,6 +2038,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const d=document.getElementById('p-date');
   if(d&&!d.value) d.value=new Date().toISOString().split('T')[0];
   setInterval(saveData,120000);
+      setInterval(saveData,120000);
+saveBrandGlobally();
 });
 </script>
 </body>
