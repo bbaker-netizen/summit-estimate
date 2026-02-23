@@ -7,7 +7,7 @@
         var u = window.location.href;
         if(u.indexOf('_v=3') === -1){
           var sep = u.indexOf('?') === -1 ? '?' : '&';
-          window.location.replace(u + sep + '_v=3');
+          window.location.replace(u + sep + '_v=3');h
         }
       })();
     </script>
@@ -636,7 +636,7 @@ textarea{resize:vertical;min-height:55px}
 // On EVERY load: purge ALL legacy seData_ keys (old JS wrote these; new JS uses se2_ prefix)
 // This ensures old cached Monday.com iframe JS cannot poison new data
 (function(){
-  var APP_VER = '2.2';
+  var APP_VER = '2.5';
   // Always nuke all legacy seData_ keys unconditionally
   var keysToRemove = [];
   for(var i=0; i<localStorage.length; i++){
@@ -1460,12 +1460,19 @@ function attachToMonday(){
         if(cols[i].type === 'file' || cols[i].title.toLowerCase().indexOf('doc') >= 0) fileCol = cols[i];
       }
 
-      var datePromise = Promise.resolve();
-      if(dateCol && subBoardId){
-        var dateVal = '{"date":"' + isoDate + '"}';
-        var escapedVal = dateVal.replace(/"/g, '\"');
-        datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateCol.id + '", value: "' + escapedVal + '") { id } }').catch(function(e){ console.warn('Date set error:', e); });
-      }
+            // ── Set DATE on sub-item (known column: date_mm0s7a5d) ──
+                      var dateColId = dateCol ? dateCol.id : 'date_mm0s7a5d';
+                      var datePromise = Promise.resolve();
+                      if(subBoardId){
+                                          var dateJsonVal = JSON.stringify(JSON.stringify({date: isoDate}));
+                                          datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateColId + '", value: ' + dateJsonVal + ') { id } }').catch(function(e){ console.warn('Date set error:', e); });
+                      }
+
+                      // ── Write QUOTE AMOUNT to parent item (column: numeric_mm006gs7) ──
+                      var quoteTotal = buildQuote();
+                      if(quoteTotal && itemId){
+                                                        window.monday.api('mutation { change_simple_column_value(board_id: 18397339348, item_id: ' + itemId + ', column_id: "numeric_mm006gs7", value: "' + String(quoteTotal) + '") { id } }').catch(function(e){ console.warn('Quote Amount set error:', e); });
+                      }
 
       datePromise.then(async function(){
         var logoB64 = window._logob64 || '';
@@ -1838,7 +1845,7 @@ function autoPopulateFromMonday(){
         if(item.column_values){
           item.column_values.forEach(function(cv){
             var addrEl = document.getElementById('p-address');
-            if((cv.id==='text'||cv.id==='address') && cv.text && addrEl && !addrEl.value)
+            if(cv.id==='location_mm00zk4g' && cv.text && addrEl && !addrEl.value)
               addrEl.value = cv.text;
           });
         }
