@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
       <script>
-      // v3 cache buster: force fresh load from GitHub Pages
+      // v4 cache buster: force fresh load
       (function(){
         var u = window.location.href;
-        if(u.indexOf('_v=3') === -1){
+        if(u.indexOf('_v=4') === -1){
           var sep = u.indexOf('?') === -1 ? '?' : '&';
-          window.location.replace(u + sep + '_v=3');
+          window.location.replace(u + sep + '_v=4');
         }
       })();
     </script>
@@ -372,60 +372,44 @@ textarea{resize:vertical;min-height:55px}
     <div class="no-print" style="display:flex;gap:6px;margin-bottom:7px">
       <select id="mat-quick" style="flex:1;font-size:11px" onchange="quickAddMat(this)">
         <option value="">+ Quick add from price list...</option>
-        <optgroup label="— Drawer Slides —">
-          <option value="Blum Tandem 15in Slides|pair|26">Blum Tandem 15" Slides — $26/pr</option>
-          <option value="Blum Tandem 18in Slides|pair|28">Blum Tandem 18" Slides — $28/pr</option>
-          <option value="Blum Tandem 21in Slides|pair|30">Blum Tandem 21" Slides — $30/pr</option>
-          <option value="Blum Tandem 22in Slides|pair|33">Blum Tandem 22" Slides — $33/pr</option>
-          <option value="Blum Tandem 27in Slides|pair|36">Blum Tandem 27" Slides — $36/pr</option>
-          <option value="Side Mount Slides 18in|pair|12">Side Mount Slides 18" — $12/pr</option>
-          <option value="Side Mount Slides 22in|pair|14">Side Mount Slides 22" — $14/pr</option>
+        <optgroup label="\u2014 Drawer Slides (all soft close, inc clips) \u2014">
+          <option value="Undermount Slides (pair)|pair|4.97">Undermount Slides \u2014 $4.97/pr</option>
+          <option value="Metabox/Uniset Slides (pair)|pair|9.29">Metabox/Uniset Slides \u2014 $9.29/pr</option>
+          <option value="Blum Tandem Slides (pair)|pair|36.00">Blum Tandem Slides \u2014 $36/pr</option>
+          <option value="Blum Tandembox Slides (pair)|pair|40.00">Blum Tandembox Slides \u2014 $40/pr</option>
         </optgroup>
-        <optgroup label="— Hinges —">
-          <option value="Blum Soft-Close Hinge|each|4.25">Blum Soft-Close Hinge — $4.25 ea</option>
-          <option value="Blum Clip Top Hinge|each|5.50">Blum Clip Top Hinge — $5.50 ea</option>
-          <option value="Full Overlay Hinge|each|3.75">Full Overlay Hinge — $3.75 ea</option>
-          <option value="Half Overlay Hinge|each|3.50">Half Overlay Hinge — $3.50 ea</option>
-          <option value="Blum Hinge Plate|each|2.25">Blum Hinge Plate — $2.25 ea</option>
+        <optgroup label="\u2014 Hinges (inc plates) \u2014">
+          <option value="Standard Hinge - Blum|each|5.25">Standard Blum Hinge \u2014 $5.25/ea</option>
+          <option value="Soft Close Hinge - Blum|each|7.05">Soft Close Blum Hinge \u2014 $7.05/ea</option>
+          <option value="DTC Hinge|each|3.38">DTC Hinge \u2014 $3.38/ea</option>
+          <option value="Bi-fold Hinge|each|7.49">Bi-fold Hinge \u2014 $7.49/ea</option>
+          <option value="Zero Protrusion Hinge|each|12.91">Zero Protrusion Hinge \u2014 $12.91/ea</option>
+          <option value="45 Degree Corner Hinge|each|9.71">45\u00B0 Corner Hinge \u2014 $9.71/ea</option>
         </optgroup>
-        <optgroup label="— Handles &amp; Knobs —">
-          <option value="SS Handle 3in CC|each|6.50">SS Handle 3" CC — $6.50 ea</option>
-          <option value="SS Handle 5in CC|each|8.95">SS Handle 5" CC — $8.95 ea</option>
-          <option value="SS Handle 8in CC|each|12.50">SS Handle 8" CC — $12.50 ea</option>
-          <option value="Bar Pull 128mm|each|9.75">Bar Pull 128mm — $9.75 ea</option>
-          <option value="Bar Pull 160mm|each|11.25">Bar Pull 160mm — $11.25 ea</option>
-          <option value="Round Knob|each|4.50">Round Knob — $4.50 ea</option>
+        <optgroup label="\u2014 Doors \u2014">
+          <option value="Thermofoil Slab Door (per sqft)|sqft|15.86">Thermofoil Slab Door \u2014 $15.86/sqft</option>
+          <option value="Thermofoil Beaded Door (per sqft)|sqft|16.54">Thermofoil Beaded Door \u2014 $16.54/sqft</option>
+          <option value="Thermofoil Shaker Door (per sqft)|sqft|24.30">Thermofoil Shaker Door \u2014 $24.30/sqft</option>
+          <option value="Cutting Edge - Cope+Stick Plywood (per sqft)|sqft|22.95">CE Cope+Stick Plywood \u2014 $22.95/sqft</option>
+          <option value="Cutting Edge - Cope+Stick Solid (per sqft)|sqft|37.80">CE Cope+Stick Solid \u2014 $37.80/sqft</option>
+          <option value="Cutting Edge - Solid Slab Maple (per sqft)|sqft|27.68">CE Solid Slab Maple \u2014 $27.68/sqft</option>
+          <option value="Pentco TF Slab - Group A (per sqft)|sqft|12.69">Pentco TF Slab Grp A \u2014 $12.69/sqft</option>
+          <option value="Pentco TF Shaker - Group A (per sqft)|sqft|16.74">Pentco TF Shaker Grp A \u2014 $16.74/sqft</option>
         </optgroup>
-        <optgroup label="— Mouldings &amp; Trim —">
-          <option value="Crown Moulding|lft|12.50">Crown Moulding — $12.50/lft</option>
-          <option value="Light Rail|lft|8.75">Light Rail — $8.75/lft</option>
-          <option value="Scribe Moulding|lft|6.50">Scribe Moulding — $6.50/lft</option>
-          <option value="Filler Strip 3in|each|18">Filler Strip 3" — $18 ea</option>
-          <option value="Filler Strip 6in|each|28">Filler Strip 6" — $28 ea</option>
-          <option value="Toe Kick|lft|7.50">Toe Kick — $7.50/lft</option>
-          <option value="Scribe Rail|lft|5.50">Scribe Rail — $5.50/lft</option>
+        <optgroup label="\u2014 Sheet Goods \u2014">
+          <option value="5/8 White Melamine (4x8)|sheet|42.00">5/8 White Melamine \u2014 $42/sht</option>
+          <option value="5/8 Oak Melamine (4x8)|sheet|58.00">5/8 Oak Melamine \u2014 $58/sht</option>
+          <option value="3/4 Birch Plywood (4x8)|sheet|75.00">3/4 Birch Plywood \u2014 $75/sht</option>
+          <option value="5/8 Birch Plywood (4x8)|sheet|65.00">5/8 Birch Plywood \u2014 $65/sht</option>
+          <option value="3/4 MDF (4x8)|sheet|48.00">3/4 MDF \u2014 $48/sht</option>
+          <option value="5/8 MDF (4x8)|sheet|38.00">5/8 MDF \u2014 $38/sht</option>
+          <option value="1/4 MDF (4x8)|sheet|22.00">1/4 MDF \u2014 $22/sht</option>
+          <option value="5/8 Maple Veneer Plywood (4x8)|sheet|95.00">5/8 Maple Veneer Ply \u2014 $95/sht</option>
         </optgroup>
-        <optgroup label="— Organizers &amp; Accessories —">
-          <option value="Lazy Susan Hardware|set|45">Lazy Susan Hardware — $45/set</option>
-          <option value="Pull-Out Shelf Kit|each|65">Pull-Out Shelf Kit — $65 ea</option>
-          <option value="Pull-Out Trash|unit|185">Pull-Out Trash — $185/unit</option>
-          <option value="Soft-Close Drawer Box|each|42">Soft-Close Drawer Box — $42 ea</option>
-          <option value="Undermount Sink Support|each|15">Undermount Sink Support — $15 ea</option>
-          <option value="Rev-A-Shelf Base Pullout|each|120">Rev-A-Shelf Base Pullout — $120 ea</option>
-          <option value="Cutlery Insert|each|35">Cutlery Insert — $35 ea</option>
-          <option value="Utensil Divider|each|28">Utensil Divider — $28 ea</option>
-        </optgroup>
-        <optgroup label="— Sheet Goods —">
-          <option value="1/4 White Melamine Back|sheet|32">1/4" White Melamine Back — $32/sheet</option>
-          <option value="5/8 White Melamine|sheet|68">5/8" White Melamine — $68/sheet</option>
-          <option value="5/8 Birch Plywood|sheet|85">5/8" Birch Plywood — $85/sheet</option>
-          <option value="3/4 Birch Plywood|sheet|95">3/4" Birch Plywood — $95/sheet</option>
-          <option value="3/4 MDF|sheet|52">3/4" MDF — $52/sheet</option>
-        </optgroup>
-        <optgroup label="— Labour —">
-          <option value="Installation Labour|hr|85">Installation Labour — $85/hr</option>
-          <option value="Delivery|flat|150">Delivery — $150 flat</option>
-          <option value="Site Measure|flat|75">Site Measure — $75 flat</option>
+        <optgroup label="\u2014 Finishing \u2014">
+          <option value="Clear Lacquer Finish|sqft|10.50">Clear Lacquer \u2014 $10.50/sqft</option>
+          <option value="Stain + Lacquer Finish|sqft|15.50">Stain + Lacquer \u2014 $15.50/sqft</option>
+          <option value="Colour Lacquer Finish|sqft|21.50">Colour Lacquer \u2014 $21.50/sqft</option>
         </optgroup>
       </select>
       <button class="btn btn-outline btn-sm" onclick="addMatRow()">+ Custom Row</button>
@@ -1092,15 +1076,69 @@ const CAB_DATA=[
 
 // ===== ESTIMATING DB PRICING (from Monday.com boards) =====
 const DB_CAB_PRICES = {
-  'Base - Shaker - Maple - Painted':    285,
-  'Base - Shaker - Oak - Stained':      310,
-  'Base - Slab - MDF - Painted':        245,
-  'Upper - Shaker - Maple - Painted':   195,
-  'Upper - Shaker - Oak - Stained':     220,
-  'Upper - Slab - MDF - Painted':       165,
-  'Tall - Shaker - Maple - Painted':    450,
-  'Island - Shaker - Maple - Painted':  295,
-  'Island - Shaker - Hickory - Stained':310
+  // ===== BASE CABINETS (cost/LF at 24"W standard) =====
+  // Melamine Box
+  'Base - Melamine - Std - Std - Undermount':      38.61,
+  'Base - Melamine - Std - Std - Metabox':          42.34,
+  'Base - Melamine - Std - SC - Tandembox':        100.03,
+  'Base - Melamine - Prem - Std - Undermount':      41.69,
+  'Base - Melamine - Prem - Std - Metabox':         45.42,
+  'Base - Melamine - Prem - SC - Tandem':           70.25,
+  // Thermofoil / MDF Doors
+  'Base - Thermofoil - Std - Std - Undermount':     77.41,
+  'Base - Thermofoil - Std - Std - Metabox':        81.14,
+  'Base - Thermofoil - Std - SC - Tandembox':      138.83,
+  'Base - Thermofoil - Prem - Std - Undermount':    91.41,
+  'Base - Thermofoil - Prem - Std - Metabox':       95.14,
+  'Base - Thermofoil - Prem - SC - Tandembox':     152.83,
+  // Maple / Oak Veneer
+  'Base - Maple/Oak - Natural - Std - Undermount':  62.51,
+  'Base - Maple/Oak - Natural - Std - Metabox':     66.24,
+  'Base - Maple/Oak - Natural - SC - Tandembox':   126.68,
+  'Base - Maple/Oak - Natural - SC - Dovetail':     99.31,
+  'Base - Maple/Oak - Stained - Std - Undermount':  81.39,
+  'Base - Maple/Oak - Stained - Std - Metabox':     85.12,
+  'Base - Maple/Oak - Stained - SC - Tandembox':   142.81,
+  'Base - Maple/Oak - Stained - SC - Dovetail':    118.18,
+  // Walnut / Cherry Veneer
+  'Base - Walnut/Cherry - Natural - Std - Undermount': 68.45,
+  'Base - Walnut/Cherry - Natural - Std - Metabox':    70.81,
+  'Base - Walnut/Cherry - Natural - SC - Tandembox':  128.50,
+  'Base - Walnut/Cherry - Natural - SC - Dovetail':   103.87,
+  // 1/4" Panel Maple/Oak
+  'Base - 1/4 Panel Maple/Oak - Natural - Std - Undermount': 106.04,
+  'Base - 1/4 Panel Maple/Oak - Natural - Std - Metabox':    108.39,
+  'Base - 1/4 Panel Maple/Oak - Natural - SC - Tandembox':   166.08,
+  'Base - 1/4 Panel Maple/Oak - Natural - SC - Dovetail':    142.82,
+
+  // ===== UPPER CABINETS (cost/LF at 24"W standard) =====
+  // Melamine Box
+  'Upper - Melamine - Std - Std':          14.24,
+  'Upper - Melamine - Prem - Std':         17.31,
+  // Thermofoil / MDF Doors
+  'Upper - Thermofoil - Std - Std':        24.66,
+  'Upper - Thermofoil - Prem - Std':       38.66,
+  // Maple / Oak Veneer
+  'Upper - Maple/Oak - Natural - Std':     23.30,
+  'Upper - Maple/Oak - Natural - SC':      29.93,
+  'Upper - Maple/Oak - Stained - Std':     39.80,
+  'Upper - Maple/Oak - Stained - SC':      46.43,
+  // Walnut / Cherry Veneer
+  'Upper - Walnut/Cherry - Natural - Std':  27.23,
+  'Upper - Walnut/Cherry - Natural - SC':   33.86,
+  // 1/4" Panel Maple/Oak
+  'Upper - 1/4 Panel Maple/Oak - Natural - Std':  56.81,
+  'Upper - 1/4 Panel Maple/Oak - Natural - SC':   63.44,
+
+  // ===== VANITY CABINETS =====
+  'Vanity - Melamine - Std - Std - Undermount':     32.41,
+  'Vanity - Thermofoil - Std - Std - Undermount':   65.21,
+  'Vanity - Maple/Oak - Natural - Std - Undermount': 52.31,
+  'Vanity - Maple/Oak - Stained - Std - Undermount': 69.19,
+
+  // ===== SPECIALTY =====
+  'Pantry - Melamine - Std - Std - Undermount':     45.00,
+  'Pantry - Maple/Oak - Natural - Std - Undermount': 72.00
 };
 function initCabinets(){
   // v2.6: No demo data — start with empty tables
@@ -1127,18 +1165,10 @@ function addCabRow(c={}){
       <option></option><option ${c.fin==='Left'?'selected':''}>Left</option><option ${c.fin==='Right'?'selected':''}>Right</option><option ${c.fin==='Both'?'selected':''}>Both</option>
     </select></td>
     <td><input value="${c.door||''}" style="width:66px" placeholder="Shaker"></td>
-    <td><select class="cab-type-sel" onchange="onCabTypeChange(this)" style="width:145px;font-size:10px;padding:2px">
-      <option value="">-- Cabinet Type --</option>
-      <option value="Base - Shaker - Maple - Painted" ${c.type==='Base - Shaker - Maple - Painted'?'selected':''}>Base Shaker Maple/Pntd $285/LF</option>
-      <option value="Base - Shaker - Oak - Stained" ${c.type==='Base - Shaker - Oak - Stained'?'selected':''}>Base Shaker Oak/Stnd $310/LF</option>
-      <option value="Base - Slab - MDF - Painted" ${c.type==='Base - Slab - MDF - Painted'?'selected':''}>Base Slab MDF/Pntd $245/LF</option>
-      <option value="Upper - Shaker - Maple - Painted" ${c.type==='Upper - Shaker - Maple - Painted'?'selected':''}>Upper Shaker Maple/Pntd $195/LF</option>
-      <option value="Upper - Shaker - Oak - Stained" ${c.type==='Upper - Shaker - Oak - Stained'?'selected':''}>Upper Shaker Oak/Stnd $220/LF</option>
-      <option value="Upper - Slab - MDF - Painted" ${c.type==='Upper - Slab - MDF - Painted'?'selected':''}>Upper Slab MDF/Pntd $165/LF</option>
-      <option value="Tall - Shaker - Maple - Painted" ${c.type==='Tall - Shaker - Maple - Painted'?'selected':''}>Tall Shaker Maple/Pntd $450/LF</option>
-      <option value="Island - Shaker - Maple - Painted" ${c.type==='Island - Shaker - Maple - Painted'?'selected':''}>Island Shaker Maple/Pntd $295/LF</option>
-      <option value="Island - Shaker - Hickory - Stained" ${c.type==='Island - Shaker - Hickory - Stained'?'selected':''}>Island Shaker Hickory/Stnd $310/LF</option>
-    </select></td>
+    <td><select class="cab-type-sel" style="width:185px" onchange="onCabTypeChange(this)">
+              <option value="">\u2014 Cabinet Type \u2014</option>
+              ${Object.entries(DB_CAB_PRICES).map(([k,v])=>{const s=k.replace(/Undermount/g,"UMnt").replace(/Tandembox/g,"TBox").replace(/Tandem/g,"Tndm").replace(/Metabox/g,"MBox").replace(/Natural/g,"Nat").replace(/Stained/g,"Stn");return '<option value="'+k+'"'+(c.type===k?' selected':'')+'>'+s+' $'+v+'/LF</option>';}).join("")}
+            </select></td>
     <td><input value="${c.notes||''}" style="width:105px"></td>
     <td><input type="number" value="${c.price||''}" style="width:62px" class="cab-unit-inp" placeholder="$/LF" oninput="updateCabTotal(this);calcQuote()"></td>
     <td class="cab-total" style="font-weight:700;white-space:nowrap">—</td>
