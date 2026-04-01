@@ -1758,14 +1758,25 @@ function initQBO(){
   if(params.get('code')&&params.get('state')==='summitestimate') exchangeQBOCode(params.get('code'),params.get('realmId'));
 }
 function connectQBO(){
-  const url='https://appcenter.intuit.com/connect/oauth2?client_id='+QBO_CLIENT_ID+'&redirect_uri='+encodeURIComponent(QBO_REDIRECT)+'&response_type=code&scope=com.intuit.quickbooks.accounting&state=summitestimate';
-  const popup=window.open(url,'QBO','width=600,height=700');
-  if(!popup){ window.location.href=url; return; }
-  document.getElementById('qbo-status-text').textContent='⏳ Authorize in the popup window...';
-  const t=setInterval(()=>{
-    try{ if(popup.closed){clearInterval(t);initQBO();} const p=new URLSearchParams(popup.location.search); if(p.get('code')){ clearInterval(t); popup.close(); exchangeQBOCode(p.get('code'),p.get('realmId')); } }catch(e){}
-  },500);
+  const oauthUrl='https://appcenter.intuit.com/connect/oauth2?client_id='+QBO_CLIENT_ID+'&redirect_uri='+encodeURIComponent(QBO_REDIRECT)+'&response_type=code&scope=com.intuit.quickbooks.accounting&state=summitestimate';
+  // Try popup first; if blocked or in iframe, fall back to full-page redirect
+  let popup = null;
+  try { popup = window.open(oauthUrl, 'QBO', 'width=600,height=700'); } catch(e) {}
+  if(!popup || popup.closed || typeof popup.closed === 'undefined'){
+    // Popup blocked — do full-page redirect
+    window.location.href = oauthUrl;
+    return;
+  }
+  document.getElementById('qbo-status-text').textContent = '⏳ Authorize in the popup window...';
+  const t = setInterval(() => {
+    try {
+      if(popup.closed){ clearInterval(t); initQBO(); return; }
+      const p = new URLSearchParams(popup.location.search);
+      if(p.get('code')){ clearInterval(t); popup.close(); exchangeQBOCode(p.get('code'), p.get('realmId')); }
+    } catch(e) {}
+  }, 500);
 }
+
 function exchangeQBOCode(code,realmId){
   document.getElementById('qbo-status-text').textContent='⏳ Exchanging authorization code...';
   setTimeout(()=>{
