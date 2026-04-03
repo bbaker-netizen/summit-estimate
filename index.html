@@ -151,25 +151,25 @@ textarea{resize:vertical;min-height:55px}
     <div class="logo-box" id="logo-img-wrap">SC</div>
     <div>
       <h1>Summit Estimate</h1>
-      <div class="subtitle">Summit Cabinets &amp; Renovations Â· Edmonton Â· 780-554-7348</div>
+      <div class="subtitle">Summit Cabinets &amp; Renovations · Edmonton · 780-554-7348</div>
     </div>
   </div>
   <div class="header-actions no-print">
-    <button class="btn btn-outline btn-sm" onclick="saveData()">ð¾ Save</button>
-    <button class="btn btn-success btn-sm" onclick="exportQuotePDF()">ð Quote PDF</button>
-    <button class="btn btn-primary btn-sm" id="btn-save-estimate" onclick="attachToMonday()">ð¾ Save Estimate</button>
+    <button class="btn btn-outline btn-sm" onclick="saveData()">💾 Save</button>
+    <button class="btn btn-success btn-sm" onclick="exportQuotePDF()">📄 Quote PDF</button>
+    <button class="btn btn-primary btn-sm" id="btn-save-estimate" onclick="attachToMonday()">💾 Save Estimate</button>
   </div>
 </div>
 
 <!-- TAB NAV -->
 <nav class="tab-nav no-print">
-  <button class="tab-btn active" onclick="switchTab('project',this)">ð Project</button>
-  <button class="tab-btn" onclick="switchTab('drawing',this)">âï¸ Drawing</button>
-  <button class="tab-btn" onclick="switchTab('cabinets',this)">ð Cabinets</button>
-  <button class="tab-btn" onclick="switchTab('materials',this)">ð§ Materials</button>
-  <button class="tab-btn" onclick="switchTab('quote',this)">ð² Quote</button>
-  <button class="tab-btn" onclick="switchTab('qbo',this)">ð QuickBooks</button>
-  <button class="tab-btn" onclick="switchTab('info',this)">â¹ï¸ Help</button>
+  <button class="tab-btn active" onclick="switchTab('project',this)">📋 Project</button>
+  <button class="tab-btn" onclick="switchTab('drawing',this)">✏️ Drawing</button>
+  <button class="tab-btn" onclick="switchTab('cabinets',this)">🗄 Cabinets</button>
+  <button class="tab-btn" onclick="switchTab('materials',this)">🔧 Materials</button>
+  <button class="tab-btn" onclick="switchTab('quote',this)">💲 Quote</button>
+  <button class="tab-btn" onclick="switchTab('qbo',this)">📐 QuickBooks</button>
+  <button class="tab-btn" onclick="switchTab('info',this)">ℹ️ Help</button>
 </nav>
 
 <div class="tab-content">
@@ -177,7 +177,7 @@ textarea{resize:vertical;min-height:55px}
 <!-- =================== PROJECT TAB =================== -->
 <div id="tab-project" class="tab-panel active">
   <div class="card">
-    <div class="card-title">ð¡ Project Info</div>
+    <div class="card-title">🏡 Project Info</div>
     <div class="form-row">
       <div class="form-group"><label>Client</label><input id="p-client" value="" placeholder="Client name"></div>
       <div class="form-group"><label>Job Site Address</label><input id="p-address" value="" placeholder="Address"></div>
@@ -195,15 +195,15 @@ textarea{resize:vertical;min-height:55px}
     </div>
   </div>
   <div class="card">
-    <div class="card-title">âï¸ Scope &amp; Notes</div>
+    <div class="card-title">✏️ Scope &amp; Notes</div>
     <div class="form-row full"><div class="form-group"><label>Scope of Work</label><textarea id="p-scope" placeholder="Replace cabinets, island, toekicks..."></textarea></div></div>
     <div style="background:#fff9e6;border-left:3px solid #f59500;padding:8px 10px;border-radius:0 4px 4px 0;margin-top:6px">
-      <label style="color:#9a6a00">â  Special Flags / Site Notes</label>
+      <label style="color:#9a6a00">⚠ Special Flags / Site Notes</label>
       <textarea id="p-notes" style="margin-top:4px;background:transparent;border-color:#f59500"></textarea>
     </div>
   </div>
   <div class="card">
-    <div class="card-title">ð¨ Box &amp; Panel Spec</div>
+    <div class="card-title">🎨 Box &amp; Panel Spec</div>
     <div class="form-row">
       <div class="form-group"><label>Box Material</label><select id="p-box" style="width:100%">
         
@@ -230,7 +230,7 @@ textarea{resize:vertical;min-height:55px}
     </div>
     <div class="form-row">
       <div class="form-group"><label>Door Style</label><select id="p-door" style="width:100%">
-        <option value="">â Select Door Style â</option>
+        <option value="">— Select Door Style —</option>
         <option value="Shaker">Shaker</option>
         <option value="Slab">Slab</option>
         <option value="Raised Panel">Raised Panel</option>
@@ -240,33 +240,33 @@ textarea{resize:vertical;min-height:55px}
         <option value="Custom">Custom...</option>
       </select></div>
       <div class="form-group"><label>Species / Finish</label><select id="p-species" style="width:100%">
-        <option value="">â Select Species / Finish â</option>
-        <option value="Maple Painted">Maple â Painted</option>
-        <option value="Maple Stained">Maple â Stained</option>
-        <option value="Oak Stained">Oak â Stained</option>
-        <option value="Oak Painted">Oak â Painted</option>
-        <option value="Cherry Stained">Cherry â Stained</option>
-        <option value="Walnut Stained">Walnut â Stained</option>
-        <option value="MDF Painted">MDF â Painted</option>
-        <option value="Thermofoil White">Thermofoil â White</option>
-        <option value="Thermofoil Grey">Thermofoil â Grey</option>
+        <option value="">— Select Species / Finish —</option>
+        <option value="Maple Painted">Maple — Painted</option>
+        <option value="Maple Stained">Maple — Stained</option>
+        <option value="Oak Stained">Oak — Stained</option>
+        <option value="Oak Painted">Oak — Painted</option>
+        <option value="Cherry Stained">Cherry — Stained</option>
+        <option value="Walnut Stained">Walnut — Stained</option>
+        <option value="MDF Painted">MDF — Painted</option>
+        <option value="Thermofoil White">Thermofoil — White</option>
+        <option value="Thermofoil Grey">Thermofoil — Grey</option>
         <option value="Custom">Custom...</option>
       </select></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Kitchen Kick Notch (H Ã D)</label><input id="p-kkick" value="" placeholder="e.g. 2 5/8 x 4 3/4"></div>
-      <div class="form-group"><label>Vanity Kick Notch (H Ã D)</label><input id="p-vkick" value="" placeholder="e.g. 2 3/8 x 7"></div>
+      <div class="form-group"><label>Kitchen Kick Notch (H × D)</label><input id="p-kkick" value="" placeholder="e.g. 2 5/8 x 4 3/4"></div>
+      <div class="form-group"><label>Vanity Kick Notch (H × D)</label><input id="p-vkick" value="" placeholder="e.g. 2 3/8 x 7"></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-title">ð· Site Photos <span class="badge badge-blue">stored in Monday Files tab</span></div>
+    <div class="card-title">📷 Site Photos <span class="badge badge-blue">stored in Monday Files tab</span></div>
     <div class="warn-note">Photos uploaded here are stored locally in this browser session only. To permanently attach site photos to the job, use the <b>Files tab</b> on this subitem after uploading.</div>
     <input type="file" id="photo-upload" accept="image/*" multiple style="display:none" onchange="addPhotos(event)">
-    <button class="btn btn-outline btn-sm no-print" onclick="document.getElementById('photo-upload').click()">ð· Add Photos</button>
+    <button class="btn btn-outline btn-sm no-print" onclick="document.getElementById('photo-upload').click()">📷 Add Photos</button>
     <div class="photo-grid" id="photo-grid"></div>
   </div>
   <div class="card">
-    <div class="card-title">ð¢ Branding on Quote</div>
+    <div class="card-title">🏢 Branding on Quote</div>
     <div class="form-row">
       <div class="form-group"><label>Company Logo URL (optional)</label><input id="brand-logo" placeholder="https://summitcabinets.ca/logo.png" oninput="updateLogoPreview()"></div>
       <div class="form-group"><label>Brand Colour</label><input type="color" id="brand-color" value="#1a3a5c" oninput="updateBrandColor()" style="height:32px;cursor:pointer"></div>
@@ -286,28 +286,28 @@ textarea{resize:vertical;min-height:55px}
 <div id="tab-drawing" class="tab-panel">
   <div id="draw-panel">
     <div class="draw-toolbar no-print">
-      <button class="tool-btn active" id="tool-pen" onclick="setTool('pen',this)" title="Freehand â auto-corrects to shapes">â Pen</button>
-      <button class="tool-btn" id="tool-line" onclick="setTool('line',this)" title="Precise straight line">â Line</button>
-      <button class="tool-btn" id="tool-rect" onclick="setTool('rect',this)" title="Rectangle â drag corner to corner">â­ Rect</button>
-      <button class="tool-btn" id="tool-circle" onclick="setTool('circle',this)" title="Ellipse/Circle â drag from centre">â¬­ Ellipse</button>
-      <button class="tool-btn" id="tool-measure" onclick="setTool('measure',this)" title="Click 2 points to add dimension label">ð Measure</button>
+      <button class="tool-btn active" id="tool-pen" onclick="setTool('pen',this)" title="Freehand — auto-corrects to shapes">✏ Pen</button>
+      <button class="tool-btn" id="tool-line" onclick="setTool('line',this)" title="Precise straight line">— Line</button>
+      <button class="tool-btn" id="tool-rect" onclick="setTool('rect',this)" title="Rectangle — drag corner to corner">▭ Rect</button>
+      <button class="tool-btn" id="tool-circle" onclick="setTool('circle',this)" title="Ellipse/Circle — drag from centre">⬭ Ellipse</button>
+      <button class="tool-btn" id="tool-measure" onclick="setTool('measure',this)" title="Click 2 points to add dimension label">📐 Measure</button>
       <button class="tool-btn" id="tool-text" onclick="setTool('text',this)">T Text</button>
       <select id="line-width" style="padding:2px 4px;font-size:11px;width:55px">
         <option value="1">1px</option><option value="2">2px</option><option value="3" selected>3px</option><option value="5">5px</option><option value="8">8px</option>
       </select>
       <input type="color" id="stroke-color" value="#1a1a1a" style="width:30px;height:26px;border:1px solid #ccc;border-radius:3px;cursor:pointer">
-      <button class="tool-btn" onclick="setScale()" title="Draw a line then enter its real length to set scale">ð Set Scale</button>
+      <button class="tool-btn" onclick="setScale()" title="Draw a line then enter its real length to set scale">📐 Set Scale</button>
       <span id="scale-display" style="font-size:10px;color:#00884a;font-weight:700"></span>
-      <button class="tool-btn" onclick="undoCanvas()">â© Undo</button>
-      <button class="tool-btn" onclick="clearCanvas()">ð Clear</button>
-      <button class="tool-btn" onclick="exportPNG()">ð¼ PNG</button>
+      <button class="tool-btn" onclick="undoCanvas()">↩ Undo</button>
+      <button class="tool-btn" onclick="clearCanvas()">🗑 Clear</button>
+      <button class="tool-btn" onclick="exportPNG()">🖼 PNG</button>
       <span id="draw-status" style="font-size:10px;color:#676879;margin-left:auto;font-style:italic"></span>
     </div>
     <div class="draw-hint">
-      â <b>Pen</b>: auto-snaps to line/rect/ellipse/triangle &nbsp;|&nbsp;
-      â¬­ <b>Ellipse</b>: drag centreâedge (hold Shift for perfect circle) &nbsp;|&nbsp;
-      ð <b>Measure</b>: click 2 points â enter dimension â shapes rescale &nbsp;|&nbsp;
-      ð <b>Set Scale</b>: draw known length â enter real value
+      ✏ <b>Pen</b>: auto-snaps to line/rect/ellipse/triangle &nbsp;|&nbsp;
+      ⬭ <b>Ellipse</b>: drag centre→edge (hold Shift for perfect circle) &nbsp;|&nbsp;
+      📐 <b>Measure</b>: click 2 points → enter dimension → shapes rescale &nbsp;|&nbsp;
+      📐 <b>Set Scale</b>: draw known length → enter real value
     </div>
     <div class="canvas-wrap">
       <canvas id="drawCanvas" width="1200" height="900"></canvas>
@@ -318,13 +318,13 @@ textarea{resize:vertical;min-height:55px}
 <!-- =================== CABINETS TAB =================== -->
 <div id="tab-cabinets" class="tab-panel">
   <div class="info-note">
-    ð¡ <b>Pricing source:</b> Unit prices entered here are <b>manual entries</b> by the estimator based on the job. 
-    The Cabinet Pricing Database board in monday.com stores your standard price list â 
+    💡 <b>Pricing source:</b> Unit prices entered here are <b>manual entries</b> by the estimator based on the job. 
+    The Cabinet Pricing Database board in monday.com stores your standard price list — 
     use it as reference when filling in Unit $ below. Future versions can auto-look up prices.
   </div>
   <div class="card">
-    <div class="card-title">ð Cabinet Schedule
-      <span class="badge badge-blue">W Ã H Ã D in inches (fractional OK)</span>
+    <div class="card-title">🗄 Cabinet Schedule
+      <span class="badge badge-blue">W × H × D in inches (fractional OK)</span>
     </div>
     <div style="overflow-x:auto">
       <table class="data-table" id="cab-table">
@@ -339,7 +339,7 @@ textarea{resize:vertical;min-height:55px}
     <button class="btn btn-outline btn-sm no-print" style="margin-top:7px" onclick="addCabRow()">+ Add Cabinet</button>
   </div>
   <div class="card">
-    <div class="card-title">ðª Island Panels</div>
+    <div class="card-title">🪟 Island Panels</div>
     <div style="overflow-x:auto">
       <table class="data-table" id="panel-table">
         <thead><tr><th>Code</th><th>Description</th><th>W</th><th>H</th><th>Unit $</th><th>Total $</th><th class="no-print"></th></tr></thead>
@@ -349,7 +349,7 @@ textarea{resize:vertical;min-height:55px}
     <button class="btn btn-outline btn-sm no-print" style="margin-top:7px" onclick="addPanelRow()">+ Add Panel</button>
   </div>
   <div class="card">
-    <div class="card-title">ð Toekicks &amp; Kicks</div>
+    <div class="card-title">👟 Toekicks &amp; Kicks</div>
     <div style="overflow-x:auto">
       <table class="data-table" id="kick-table">
         <thead><tr><th>Code</th><th>Description</th><th>Linear ft</th><th>Height</th><th>$/ft</th><th>Total $</th><th class="no-print"></th></tr></thead>
@@ -363,12 +363,12 @@ textarea{resize:vertical;min-height:55px}
 <!-- =================== MATERIALS TAB =================== -->
 <div id="tab-materials" class="tab-panel">
   <div class="info-note">
-    ð¡ <b>Pricing source:</b> Standard prices below come from your <b>Materials &amp; Hardware Pricing</b> board in monday.com 
+    💡 <b>Pricing source:</b> Standard prices below come from your <b>Materials &amp; Hardware Pricing</b> board in monday.com 
     (Blum slides $33/pr, hinges $4.25 ea, etc.). Edit the Unit $ column to override for this job.
     Countertop rates come from your <b>Countertop Pricing</b> board.
   </div>
   <div class="card">
-    <div class="card-title">ð§ Hardware &amp; Materials</div>
+    <div class="card-title">🔧 Hardware &amp; Materials</div>
     <div class="no-print" style="display:flex;gap:6px;margin-bottom:7px">
       <select id="mat-quick" style="flex:1;font-size:11px" onchange="quickAddMat(this)">
         <option value="">+ Quick add from price list...</option>
@@ -420,7 +420,7 @@ textarea{resize:vertical;min-height:55px}
     </table>
   </div>
   <div class="card">
-    <div class="card-title">ðª¨ Countertops</div>
+    <div class="card-title">🪨 Countertops</div>
     <div style="overflow-x:auto">
       <table class="data-table">
         <thead><tr><th>Location</th><th>Material</th><th>Sq Ft</th><th>$/sqft</th><th>Source</th><th>Total $</th><th class="no-print"></th></tr></thead>
@@ -434,12 +434,12 @@ textarea{resize:vertical;min-height:55px}
 <!-- =================== QUOTE TAB =================== -->
 <div id="tab-quote" class="tab-panel">
   <div class="card no-print">
-    <div class="card-title">âï¸ Quote Settings</div>
+    <div class="card-title">⚙️ Quote Settings</div>
     <div class="form-row three">
       <div class="form-group"><label>Markup %</label><input id="markup-pct" type="number" value="25" min="0" max="200" oninput="calcQuote()"></div>
       <div class="form-group"><label>GST %</label><input id="gst-pct" type="number" value="5" min="0" oninput="calcQuote()"></div>
       <div class="form-group" style="justify-content:flex-end;padding-top:14px">
-        <button class="btn btn-primary btn-sm" onclick="calcQuote()">ð Recalculate</button>
+        <button class="btn btn-primary btn-sm" onclick="calcQuote()">🔄 Recalculate</button>
       </div>
     </div>
   </div>
@@ -497,9 +497,9 @@ textarea{resize:vertical;min-height:55px}
   </div>
 
   <div class="no-print" style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-    <button class="btn btn-primary" onclick="exportQuotePDF()">ð Download PDF</button>
-    <button class="btn btn-success" onclick="attachToMonday()">ð Attach to Subitem</button>
-    <button class="btn btn-outline" onclick="window.print()">ð¨ Print</button>
+    <button class="btn btn-primary" onclick="exportQuotePDF()">📄 Download PDF</button>
+    <button class="btn btn-success" onclick="attachToMonday()">📐 Attach to Subitem</button>
+    <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
   </div>
 </div>
 
@@ -509,20 +509,20 @@ textarea{resize:vertical;min-height:55px}
     <div style="width:36px;height:36px;background:#2CA01C;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:13px;flex-shrink:0">QB</div>
     <div>
       <div style="font-weight:700;font-size:13px">QuickBooks Online</div>
-      <div id="qbo-status-text" style="font-size:11px;color:#9a6a00">â Not connected â click Connect to authorize</div>
+      <div id="qbo-status-text" style="font-size:11px;color:#9a6a00">● Not connected — click Connect to authorize</div>
     </div>
     <div style="margin-left:auto">
-      <button id="qbo-connect-btn" class="qbo-btn qbo-connect" onclick="connectQBO()">ð Connect to QuickBooks</button>
+      <button id="qbo-connect-btn" class="qbo-btn qbo-connect" onclick="connectQBO()">🔗 Connect to QuickBooks</button>
     </div>
   </div>
   <div class="warn-note">
-    <b>â  Admin setup required.</b> Your QBO admin must add this app in Intuit Developer portal first. 
+    <b>⚠ Admin setup required.</b> Your QBO admin must add this app in Intuit Developer portal first. 
     Once added, click <i>Connect to QuickBooks</i> to authorize with your Intuit account. 
-    The connection is remembered in this browser â nothing leaves your QBO company file.
+    The connection is remembered in this browser — nothing leaves your QBO company file.
   </div>
   <div id="qbo-create-section" style="opacity:.4;pointer-events:none">
     <div class="card">
-      <div class="card-title">ð Push Estimate to QuickBooks</div>
+      <div class="card-title">📄 Push Estimate to QuickBooks</div>
       <div class="form-row">
         <div class="form-group"><label>QBO Customer Name</label><input id="qbo-customer" placeholder="Auto-filled from Project tab"></div>
         <div class="form-group"><label>QBO Estimate Title / DocNumber</label><input id="qbo-title"></div>
@@ -531,18 +531,18 @@ textarea{resize:vertical;min-height:55px}
         <div class="form-group"><label>Due Date</label><input type="date" id="qbo-due"></div>
         <div class="form-group"><label>Customer Message</label><input id="qbo-msg" value="Thank you for your business!"></div>
       </div>
-      <button class="qbo-btn qbo-push" id="qbo-push-btn" onclick="pushToQBO()" disabled style="margin-top:8px">ð¤ Create Estimate in QuickBooks</button>
+      <button class="qbo-btn qbo-push" id="qbo-push-btn" onclick="pushToQBO()" disabled style="margin-top:8px">📤 Create Estimate in QuickBooks</button>
       <div id="qbo-result" style="margin-top:8px;font-size:11px"></div>
     </div>
   </div>
   <div class="card" style="margin-top:10px">
-    <div class="card-title">ð What gets synced to QBO</div>
+    <div class="card-title">📋 What gets synced to QBO</div>
     <div style="font-size:11px;line-height:1.8;color:#676879">
-      â Customer record (looked up or created automatically)<br>
-      â Estimate with all line items: cabinets, panels, kicks, materials, countertops<br>
-      â Markup and GST as separate line items<br>
-      â Estimate # carried over as QBO reference/doc number<br>
-      â Customer message and due date<br>
+      ✅ Customer record (looked up or created automatically)<br>
+      ✅ Estimate with all line items: cabinets, panels, kicks, materials, countertops<br>
+      ✅ Markup and GST as separate line items<br>
+      ✅ Estimate # carried over as QBO reference/doc number<br>
+      ✅ Customer message and due date<br>
     </div>
   </div>
 </div>
@@ -550,37 +550,37 @@ textarea{resize:vertical;min-height:55px}
 <!-- =================== HELP / INFO TAB =================== -->
 <div id="tab-info" class="tab-panel">
   <div class="card">
-    <div class="card-title">ð¦ Where is my data stored?</div>
+    <div class="card-title">📦 Where is my data stored?</div>
     <div style="font-size:12px;line-height:1.9">
       <b>This app stores data in 3 places:</b><br><br>
       <b style="color:#1a3a5c">1. Browser localStorage (this device)</b><br>
-      All fields â client info, cabinet schedule, materials, quote settings â are auto-saved to this browser's localStorage every 2 minutes and when you click Save. 
-      <span style="color:#d83b3b">â  This means data is per-device and per-browser. If you clear your browser or use a different device, data will not carry over.</span><br><br>
+      All fields — client info, cabinet schedule, materials, quote settings — are auto-saved to this browser's localStorage every 2 minutes and when you click Save. 
+      <span style="color:#d83b3b">⚠ This means data is per-device and per-browser. If you clear your browser or use a different device, data will not carry over.</span><br><br>
       <b style="color:#1a3a5c">2. Monday.com Files tab</b><br>
-      When you click <b>ð Attach to Subitem</b>, the quote is exported as a PDF and uploaded to this subitem's <b>Files tab</b> in Monday.com. 
-      This is permanent storage on monday.com's servers â accessible from any device, shareable, and stays with the job record.<br><br>
+      When you click <b>📐 Attach to Subitem</b>, the quote is exported as a PDF and uploaded to this subitem's <b>Files tab</b> in Monday.com. 
+      This is permanent storage on monday.com's servers — accessible from any device, shareable, and stays with the job record.<br><br>
       <b style="color:#1a3a5c">3. QuickBooks Online (when connected)</b><br>
       When you click <b>Push Estimate to QBO</b>, a copy is created in your QuickBooks company file as an Estimate record, linked to the customer.<br><br>
-      <b style="color:#9a6a00">ð¡ Best practice:</b> Always click <b>ð Attach to Subitem</b> after completing an estimate. This saves the PDF to monday.com and ensures the data is preserved regardless of browser/device.
+      <b style="color:#9a6a00">💡 Best practice:</b> Always click <b>📐 Attach to Subitem</b> after completing an estimate. This saves the PDF to monday.com and ensures the data is preserved regardless of browser/device.
     </div>
   </div>
   <div class="card">
-    <div class="card-title">ð² Pricing Data Sources</div>
+    <div class="card-title">💲 Pricing Data Sources</div>
     <div style="font-size:12px;line-height:1.8">
-      <b>Cabinet prices</b> â Entered manually by the estimator per job. Reference your <b>Cabinet Pricing Database</b> board in Monday.com for standard rates.<br>
-      <b>Hardware/Materials</b> â Standard rates pre-loaded from your <b>Materials &amp; Hardware Pricing</b> board: Blum Tandem 22" $33/pr, hinges $4.25 ea, handles $8.95 ea, etc.<br>
-      <b>Countertops</b> â Rates from your <b>Countertop Pricing</b> board: Quartz A $38/sqft, Quartz B $66/sqft, Granite $55/sqft, Laminate $25/sqft.<br><br>
-      <b style="color:#9a6a00">To update pricing:</b> Update the Monday.com board prices, then let your developer know â prices can be pulled live from those boards via the Monday API.
+      <b>Cabinet prices</b> — Entered manually by the estimator per job. Reference your <b>Cabinet Pricing Database</b> board in Monday.com for standard rates.<br>
+      <b>Hardware/Materials</b> — Standard rates pre-loaded from your <b>Materials &amp; Hardware Pricing</b> board: Blum Tandem 22" $33/pr, hinges $4.25 ea, handles $8.95 ea, etc.<br>
+      <b>Countertops</b> — Rates from your <b>Countertop Pricing</b> board: Quartz A $38/sqft, Quartz B $66/sqft, Granite $55/sqft, Laminate $25/sqft.<br><br>
+      <b style="color:#9a6a00">To update pricing:</b> Update the Monday.com board prices, then let your developer know — prices can be pulled live from those boards via the Monday API.
     </div>
   </div>
   <div class="card">
-    <div class="card-title">âï¸ Drawing Tips</div>
+    <div class="card-title">✏️ Drawing Tips</div>
     <div style="font-size:12px;line-height:1.8">
-      <b>Pen tool</b> â Draw freehand; the app auto-corrects to the nearest clean shape. Draw a nearly-closed oval â becomes an ellipse. Draw a boxy closed path â becomes a rectangle. Draw a quick line â becomes a straight line.<br>
-      <b>Ellipse tool</b> â Click centre, drag outward. The ellipse fits your drag radius in X and Y. Hold <b>Shift</b> for a perfect circle (equal radii).<br>
-      <b>Set Scale</b> â Draw any line on the canvas (e.g. a wall you know is 10ft), then enter the real measurement. All subsequent Measure labels will show real-world dimensions.<br>
-      <b>Measure tool</b> â After setting scale, click two points to add a dimension line with the real-world label.<br>
-      <b>Apple Pencil</b> â All pointer events support stylus pressure. The canvas aligns to your touch point using getBoundingClientRect scaling.
+      <b>Pen tool</b> — Draw freehand; the app auto-corrects to the nearest clean shape. Draw a nearly-closed oval → becomes an ellipse. Draw a boxy closed path → becomes a rectangle. Draw a quick line → becomes a straight line.<br>
+      <b>Ellipse tool</b> — Click centre, drag outward. The ellipse fits your drag radius in X and Y. Hold <b>Shift</b> for a perfect circle (equal radii).<br>
+      <b>Set Scale</b> — Draw any line on the canvas (e.g. a wall you know is 10ft), then enter the real measurement. All subsequent Measure labels will show real-world dimensions.<br>
+      <b>Measure tool</b> — After setting scale, click two points to add a dimension line with the real-world label.<br>
+      <b>Apple Pencil</b> — All pointer events support stylus pressure. The canvas aligns to your touch point using getBoundingClientRect scaling.
     </div>
   </div>
 </div>
@@ -591,9 +591,9 @@ textarea{resize:vertical;min-height:55px}
 <!-- =================== SCALE MODAL =================== -->
 <div id="scale-modal" class="modal-overlay" style="display:none">
   <div class="modal-box">
-    <h3>ð Set Drawing Scale</h3>
+    <h3>📐 Set Drawing Scale</h3>
     <p style="font-size:11px;color:#676879;margin-bottom:12px">Draw a line on the canvas of a known real-world length, then enter that length below.</p>
-    <div class="form-row full"><div class="form-group"><label>Line length on screen (px â auto-measured)</label><input id="scale-px" type="number" readonly style="background:#f5f6fa"></div></div>
+    <div class="form-row full"><div class="form-group"><label>Line length on screen (px — auto-measured)</label><input id="scale-px" type="number" readonly style="background:#f5f6fa"></div></div>
     <div class="form-row">
       <div class="form-group"><label>Real-world length</label><input id="scale-real" type="number" step="0.125" placeholder="e.g. 96" autofocus></div>
       <div class="form-group"><label>Unit</label>
@@ -610,7 +610,7 @@ textarea{resize:vertical;min-height:55px}
 <!-- =================== MEASURE MODAL =================== -->
 <div id="measure-modal" class="modal-overlay" style="display:none">
   <div class="modal-box">
-    <h3>ð Label This Dimension</h3>
+    <h3>📐 Label This Dimension</h3>
     <div class="form-row full"><div class="form-group"><label>Measurement (e.g. 35 1/2 or 35.5)</label><input id="measure-input" placeholder='e.g. 35 1/2"' autofocus onkeydown="if(event.key==='Enter')confirmMeasure()"></div></div>
     <div style="background:#f0f8ff;padding:8px;border-radius:4px;margin:8px 0;font-size:11px" id="measure-calc-info"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -722,7 +722,7 @@ function initCanvas(){
   canvas = document.getElementById('drawCanvas');
   if(!canvas) return;
   ctx = canvas.getContext('2d');
-  // Don't resize â use fixed 1200x900 canvas, allow scroll
+  // Don't resize — use fixed 1200x900 canvas, allow scroll
   applyCtxStyle();
   canvas.removeEventListener('pointerdown', onPD);
   canvas.removeEventListener('pointermove', onPM);
@@ -783,7 +783,7 @@ function onPM(e){
     ctx.save(); ctx.setLineDash([8,4]); ctx.strokeStyle='#0073ea'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(scaleLineStart.x,scaleLineStart.y); ctx.lineTo(x,y); ctx.stroke();
     ctx.restore();
-    setStatus('Length: '+Math.round(Math.hypot(x-scaleLineStart.x,y-scaleLineStart.y))+'px â release to confirm');
+    setStatus('Length: '+Math.round(Math.hypot(x-scaleLineStart.x,y-scaleLineStart.y))+'px — release to confirm');
     return;
   }
   if(tool==='measure' && measurePending && measureLine){
@@ -819,8 +819,8 @@ function onPU(e){
     const info=document.getElementById('measure-calc-info');
     const realLen = scalePxPerUnit ? (pxLen/scalePxPerUnit) : null;
     if(info) info.innerHTML = realLen
-      ? 'Drawn: '+pxLen.toFixed(0)+'px â <b>'+formatFrac(realLen)+' '+scaleUnit+'</b> at current scale'
-      : 'No scale set â enter a measurement and the drawing will calibrate.';
+      ? 'Drawn: '+pxLen.toFixed(0)+'px → <b>'+formatFrac(realLen)+' '+scaleUnit+'</b> at current scale'
+      : 'No scale set — enter a measurement and the drawing will calibrate.';
     if(realLen) document.getElementById('measure-input').value=formatFrac(realLen)+'"';
     document.getElementById('measure-modal').style.display='flex';
     measurePending=false;
@@ -863,7 +863,7 @@ function commitShape(t,x1,y1,x2,y2,shift){
     const finalRx = r||rx, finalRy = r||ry;
     ctx.ellipse(x1,y1,finalRx,finalRy,0,0,Math.PI*2); ctx.stroke();
     shapeObjects.push({type:'ellipse',cx:x1,cy:y1,rx:finalRx,ry:finalRy,color:ctx.strokeStyle,lw:ctx.lineWidth});
-    setStatus('Ellipse drawn â Shift+drag for perfect circle');
+    setStatus('Ellipse drawn — Shift+drag for perfect circle');
   }
 }
 
@@ -888,14 +888,14 @@ function autoCorrect(){
     if(directDist/pathLen > 0.85){
       ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(e.x,e.y); ctx.stroke();
       shapeObjects.push({type:'line',x1:s.x,y1:s.y,x2:e.x,y2:e.y,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
-      setStatus('Auto â Line'); penPath=[]; return;
+      setStatus('Auto → Line'); penPath=[]; return;
     }
     // Keep freehand
     redrawFree(penPath); penPath=[]; return;
   }
 
-  // CLOSED PATH â distinguish ellipse vs rectangle vs triangle
-  // Key fix: use the "roundness" metric â compare path to ellipse perimeter vs rect perimeter
+  // CLOSED PATH — distinguish ellipse vs rectangle vs triangle
+  // Key fix: use the "roundness" metric — compare path to ellipse perimeter vs rect perimeter
   const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
   const rx=w/2, ry=h/2;
   // Ramanujan ellipse perimeter approximation
@@ -918,16 +918,16 @@ function autoCorrect(){
   if(detected==='ellipse'){
     ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.stroke();
     shapeObjects.push({type:'ellipse',cx,cy,rx,ry,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
-    setStatus('Auto â Ellipse ('+Math.round(rx*2)+'Ã'+Math.round(ry*2)+'px)');
+    setStatus('Auto → Ellipse ('+Math.round(rx*2)+'×'+Math.round(ry*2)+'px)');
   } else if(detected==='triangle'){
     const pts=getTrianglePts(penPath);
     ctx.moveTo(pts[0].x,pts[0].y); ctx.lineTo(pts[1].x,pts[1].y); ctx.lineTo(pts[2].x,pts[2].y); ctx.closePath(); ctx.stroke();
     shapeObjects.push({type:'triangle',pts,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
-    setStatus('Auto â Triangle');
+    setStatus('Auto → Triangle');
   } else {
     ctx.strokeRect(minX,minY,w,h);
     shapeObjects.push({type:'rect',x1:minX,y1:minY,x2:maxX,y2:maxY,color:ctx.strokeStyle,lw:ctx.lineWidth,auto:true});
-    setStatus('Auto â Rectangle');
+    setStatus('Auto → Rectangle');
   }
   penPath=[];
 }
@@ -1052,7 +1052,7 @@ function formatFrac(n){
   const fnd=fracs.find(x=>Math.abs(f-x.v)<0.07);
   return w>0?(fnd?w+' '+fnd.s:n.toFixed(2)):(fnd?fnd.s:n.toFixed(2));
 }
-function parseFracDim(s){ return parseFrac((s||'').replace(/[ÃxX]/g,' ')); }
+function parseFracDim(s){ return parseFrac((s||'').replace(/[×xX]/g,' ')); }
 
 // ========== PHOTOS ==========
 function addPhotos(e){
@@ -1069,8 +1069,8 @@ const CAB_DATA=[
   {code:'C02',loc:'Basement Vanity',w:'31 5/8',h:'31 1/4',d:'21 1/8',fin:'Right',door:'Shaker',type:'Vanity Base',notes:''},
   {code:'C03',loc:'Master Vanity',w:'31 1/2',h:'31',d:'21 1/8',fin:'Right',door:'Shaker',type:'Vanity Base',notes:''},
   {code:'C04',loc:'Kitchen',w:'15 3/4',h:'35',d:'24',fin:'',door:'Shaker',type:'Base',notes:'Left of stove'},
-  {code:'C05',loc:'Kitchen',w:'',h:'',d:'',fin:'',door:'Shaker',type:'Base',notes:'Sink â dont have parts'},
-  {code:'C06',loc:'Kitchen',w:'23 5/8',h:'35',d:'12 1/2',fin:'',door:'Shaker',type:'Base',notes:'Left of sink â see pic'},
+  {code:'C05',loc:'Kitchen',w:'',h:'',d:'',fin:'',door:'Shaker',type:'Base',notes:'Sink — dont have parts'},
+  {code:'C06',loc:'Kitchen',w:'23 5/8',h:'35',d:'12 1/2',fin:'',door:'Shaker',type:'Base',notes:'Left of sink — see pic'},
 ];
 
 // ===== ESTIMATING DB PRICING (from Monday.com boards) =====
@@ -1140,7 +1140,7 @@ const DB_CAB_PRICES = {
   'Pantry - Maple/Oak - Natural - Std - Undermount': 72.00
 };
 function initCabinets(){
-  // v2.6: No demo data â start with empty tables
+  // v2.6: No demo data — start with empty tables
   // Add one blank row to each section so the UI isn't completely empty
   if(!document.getElementById('cab-tbody').children.length) addCabRow({});
   if(!document.getElementById('panel-tbody').children.length) addPanelRow({});
@@ -1170,7 +1170,7 @@ function addCabRow(c={}){
             </select></td>
     <td><input value="${c.notes||''}" style="width:105px"></td>
     <td><input type="number" value="${c.price||''}" style="width:62px" class="cab-unit-inp" placeholder="$/LF" oninput="updateCabTotal(this);calcQuote()"></td>
-    <td class="cab-total" style="font-weight:700;white-space:nowrap">â</td>
+    <td class="cab-total" style="font-weight:700;white-space:nowrap">—</td>
     <td>${mkDel()}</td>`;
   tb.appendChild(tr);
   if(c.price) updateCabTotal(tr.querySelector('input[type=number]'));
@@ -1190,7 +1190,7 @@ function onCabTypeChange(sel) {
 }
 function updateCabTotal(inp){
   const p=parseFloat(inp.value)||0;
-  inp.closest('tr').querySelector('.cab-total').textContent=p?'$'+p.toFixed(2):'â';
+  inp.closest('tr').querySelector('.cab-total').textContent=p?'$'+p.toFixed(2):'—';
 }
 
 function addPanelRow(c={}){
@@ -1204,7 +1204,7 @@ function addPanelRow(c={}){
     <td><input value="${c.w||''}" style="width:52px"></td>
     <td><input value="${c.h||''}" style="width:52px"></td>
     <td><input type="number" value="${c.price||''}" style="width:62px" class="cab-unit-inp" placeholder="$/LF" oninput="calcQuote()"></td>
-    <td class="panel-total">â</td>
+    <td class="panel-total">—</td>
     <td>${mkDel()}</td>`;
   tb.appendChild(tr);
 }
@@ -1220,7 +1220,7 @@ function addKickRow(c={}){
     <td><input type="number" value="${c.ft||''}" style="width:55px" placeholder="0" oninput="calcQuote()"></td>
     <td><input value="${c.ht||''}" style="width:52px"></td>
     <td><input type="number" value="${c.pft||''}" style="width:55px" placeholder="0.00" oninput="calcQuote()"></td>
-    <td class="kick-total">â</td>
+    <td class="kick-total">—</td>
     <td>${mkDel()}</td>`;
   tb.appendChild(tr);
 }
@@ -1240,8 +1240,8 @@ function addMatRow(item={}){
     <td><input type="number" value="${item.qty||1}" min="1" style="width:42px" oninput="updateMatTotal(this)"></td>
     <td><input value="${item.unit||'each'}" style="width:46px"></td>
     <td><input type="number" value="${item.price||''}" style="width:62px" class="cab-unit-inp" placeholder="$/LF" oninput="updateMatTotal(this)"></td>
-    <td style="font-size:9px;color:${item.source?'#00884a':'#9a6a00'}">${item.source?'ð DB':'âï¸ Manual'}</td>
-    <td class="mat-total" style="font-weight:700">â</td>
+    <td style="font-size:9px;color:${item.source?'#00884a':'#9a6a00'}">${item.source?'📐 DB':'✏️ Manual'}</td>
+    <td class="mat-total" style="font-weight:700">—</td>
     <td>${mkDel()}</td>`;
   tb.appendChild(tr);
   if(item.price) updateMatTotal(tr.querySelector('input[type=number]'));
@@ -1250,7 +1250,7 @@ function updateMatTotal(inp){
   const row=inp.closest('tr');
   const nums=row.querySelectorAll('input[type=number]');
   const qty=parseFloat(nums[0].value)||1, price=parseFloat(nums[1].value)||0;
-  row.querySelector('.mat-total').textContent=price?(('$'+(qty*price).toFixed(2))):'â';
+  row.querySelector('.mat-total').textContent=price?(('$'+(qty*price).toFixed(2))):'—';
 }
 
 const CT_RATES={'Quartz Level A':38,'Quartz Level B':66,'Quartz Level C':95,'Granite Standard':55,'Granite Premium':75,'Marble':110,'Quartzite':95,'Laminate':25,'Butcher Block':62,'Porcelain Slab':85,'Concrete':120,'Dekton':130};
@@ -1294,7 +1294,7 @@ function updateCtTotal(inp){
   const row=inp.closest('tr');
   const sqft=parseFloat(inp.value)||0;
   const rate=parseFloat(row.querySelector('.ct-rate').textContent.replace('$',''))||0;
-  row.querySelector('.ct-total').textContent=sqft?'$'+(sqft*rate).toFixed(2):'â';
+  row.querySelector('.ct-total').textContent=sqft?'$'+(sqft*rate).toFixed(2):'—';
 }
 // ========== QUOTE BUILDER ==========
 function getVal(id){ return (document.getElementById(id)||{}).value||''; }
@@ -1343,9 +1343,9 @@ function buildQuote(){
   set('quote-date',getVal('p-date'));
   set('quote-estimator','Estimator: '+getVal('p-estimator'));
   set('quote-pm','PM: '+getVal('p-pm'));
-  set('quote-box',getVal('p-box')||'â');
-  set('quote-panel',getVal('p-panel')||'â');
-  set('quote-door',getVal('p-door')||'â');
+  set('quote-box',getVal('p-box')||'—');
+  set('quote-panel',getVal('p-panel')||'—');
+  set('quote-door',getVal('p-door')||'—');
   set('quote-company-name',getVal('brand-name'));
   set('quote-phone',getVal('brand-phone'));
   set('quote-web',getVal('brand-web'));
@@ -1360,7 +1360,7 @@ function buildQuote(){
     const price=parseFloat(tr.querySelector('input[type=number]')?.value||0);
     if(!price) return;
     const code=inputs[0]?.value, loc=inputs[1]?.value, w=inputs[2]?.value, h=inputs[3]?.value, d=inputs[4]?.value;
-    cabLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">${code}</td><td style="padding:3px 6px;flex:1">${loc} &mdash; ${w}Ã${h}Ã${d}</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${price.toFixed(2)}</td></tr>`);
+    cabLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">${code}</td><td style="padding:3px 6px;flex:1">${loc} &mdash; ${w}×${h}×${d}</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${price.toFixed(2)}</td></tr>`);
   });
 
   const matLines=[];
@@ -1370,7 +1370,7 @@ function buildQuote(){
     const qty=parseFloat(ns[0]?.value||1), price=parseFloat(ns[1]?.value||0);
     const total=qty*price;
     if(!total) return;
-    matLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">â</td><td style="padding:3px 6px">${name} (Ã${qty})</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${total.toFixed(2)}</td></tr>`);
+    matLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">—</td><td style="padding:3px 6px">${name} (×${qty})</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${total.toFixed(2)}</td></tr>`);
   });
 
   const ctLines=[];
@@ -1381,7 +1381,7 @@ function buildQuote(){
     const rate=parseFloat(tr.querySelector('.ct-rate')?.textContent?.replace('$','')||0);
     const total=sqft*rate;
     if(!total) return;
-    ctLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">â</td><td style="padding:3px 6px">${loc}: ${mat} (${sqft} sqft @ $${rate})</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${total.toFixed(2)}</td></tr>`);
+    ctLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">—</td><td style="padding:3px 6px">${loc}: ${mat} (${sqft} sqft @ $${rate})</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${total.toFixed(2)}</td></tr>`);
   });
 
   const tableStyle='width:100%;border-collapse:collapse;margin-bottom:8px';
@@ -1395,7 +1395,7 @@ function buildQuote(){
     const inputs=tr.querySelectorAll('input');
     const price=parseFloat(tr.querySelector('input[type=number]')?.value||0);
     if(!price) return;
-    panelLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">${inputs[0]?.value}</td><td style="padding:3px 6px">${inputs[1]?.value} ${inputs[2]?.value}Ã${inputs[3]?.value}</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${price.toFixed(2)}</td></tr>`);
+    panelLines.push(`<tr style="font-size:11px"><td style="padding:3px 6px;color:#676879">${inputs[0]?.value}</td><td style="padding:3px 6px">${inputs[1]?.value} ${inputs[2]?.value}×${inputs[3]?.value}</td><td style="padding:3px 6px;text-align:right;font-weight:600">$${price.toFixed(2)}</td></tr>`);
   });
   if(panelLines.length) html+=`<table style="${tableStyle}"><thead><tr><th style="${thStyle};width:40px">Code</th><th style="${thStyle}">Island Panel</th><th style="${thStyle};text-align:right">Price</th></tr></thead><tbody>${panelLines.join('')}</tbody></table>`;
 
@@ -1483,15 +1483,15 @@ function attachToMonday(){
   }
 
   if(!itemId){ restore(); showStatus('No item ID - open from Monday.com', true); return; }
-  // Ensure SDK instance is initialized (mondaySdk() factory â window.monday)
+  // Ensure SDK instance is initialized (mondaySdk() factory → window.monday)
   if(!window.monday && window.mondaySdk){ window.monday = window.mondaySdk(); }
-  if(!window.monday){ restore(); showStatus('Monday SDK not loaded â open from Monday.com', true); return; }
+  if(!window.monday){ restore(); showStatus('Monday SDK not loaded — open from Monday.com', true); return; }
 
   window.monday.api('{ items(ids:[' + itemId + ']){ subitems { id } } }').then(function(countRes){
     var count = 0;
     try { count = countRes.data.items[0].subitems.length; } catch(e){}
     var vNum = count + 1;
-    var subName = shortEst + ' â ' + client + ' â v' + vNum + ' [' + dateStr + ']';
+    var subName = shortEst + ' – ' + client + ' – v' + vNum + ' [' + dateStr + ']';
 
     return window.monday.api('mutation { create_subitem(parent_item_id: ' + itemId + ', item_name: "' + subName.replace(/"/g, '\"') + '") { id board { id columns { id title type } } } }').then(function(subRes){
       var sub = subRes && subRes.data && subRes.data.create_subitem;
@@ -1505,7 +1505,7 @@ function attachToMonday(){
         if(cols[i].type === 'file' || cols[i].title.toLowerCase().indexOf('doc') >= 0) fileCol = cols[i];
       }
 
-            // ââ Set DATE on sub-item (known column: date_mm0s7a5d) ââ
+            // ── Set DATE on sub-item (known column: date_mm0s7a5d) ──
                       var dateColId = dateCol ? dateCol.id : 'date_mm0s7a5d';
                       var datePromise = Promise.resolve();
                       if(subBoardId){
@@ -1513,7 +1513,7 @@ function attachToMonday(){
                                           datePromise = window.monday.api('mutation { change_column_value(board_id: ' + subBoardId + ', item_id: ' + subId + ', column_id: "' + dateColId + '", value: ' + dateJsonVal + ') { id } }').catch(function(e){ console.warn('Date set error:', e); });
                       }
 
-                      // ââ Write QUOTE AMOUNT to parent item (column: numeric_mm006gs7) ââ
+                      // ── Write QUOTE AMOUNT to parent item (column: numeric_mm006gs7) ──
                       var quoteTotal = buildQuote();
                       if(quoteTotal && itemId){
                                                         window.monday.api('mutation { change_simple_column_value(board_id: 18397339348, item_id: ' + itemId + ', column_id: "numeric_mm006gs7", value: "' + String(quoteTotal) + '") { id } }').catch(function(e){ console.warn('Quote Amount set error:', e); });
@@ -1536,11 +1536,11 @@ function attachToMonday(){
             // Vertical centre baseline for text inside a rect band
             // fontSize in pt; returns y coordinate for doc.text()
             function vctr(bandY, bandH, fsPt) {
-              // cap-height â fontSize(pt) Ã 0.352778(ptâmm) Ã 0.72(cap ratio)
+              // cap-height ≈ fontSize(pt) × 0.352778(pt→mm) × 0.72(cap ratio)
               return bandY + bandH/2 + fsPt*0.352778*0.72/2;
             }
 
-            // ââ SECTION HEADER BAND ââââââââââââââââââââââââââââââââââââ
+            // ── SECTION HEADER BAND ────────────────────────────────────
             var SHDR = 9;
             function secHdr(title) {
               checkPage(SHDR+12);
@@ -1553,7 +1553,7 @@ function attachToMonday(){
               doc.setTextColor(40,40,40);
             }
 
-            // ââ COLUMN SUB-HEADER ROW âââââââââââââââââââââââââââââââââ
+            // ── COLUMN SUB-HEADER ROW ─────────────────────────────────
             var CHDR = 8;
             function colHdr(ws, labels) {
               checkPage(CHDR+2);
@@ -1571,7 +1571,7 @@ function attachToMonday(){
               doc.setTextColor(40,40,40);
             }
 
-            // ââ DATA ROW âââââââââââââââââââââââââââââââââââââââââââââ
+            // ── DATA ROW ─────────────────────────────────────────────
             var ROWY = 6.5;
             function dataRow(ws, vals, even) {
               checkPage(ROWY+2);
@@ -1588,7 +1588,7 @@ function attachToMonday(){
               y += ROWY;
             }
 
-            // ââ TOTAL ROW ââââââââââââââââââââââââââââââââââââââââââââ
+            // ── TOTAL ROW ────────────────────────────────────────────
             function totRow(label, amount, hi) {
               var h=hi?10:7; checkPage(h+3);
               var tw=80, tx=pageW-margin-tw;
@@ -1605,9 +1605,9 @@ function attachToMonday(){
               doc.setTextColor(40,40,40); y+=h+2;
             }
 
-            // âââââââââââââââ BUILD âââââââââââââââââââââââââââââââââââ
+            // ═══════════════ BUILD ═══════════════════════════════════
 
-            // ââ HEADER âââââââââââââââââââââââââââââââââââââââââââââââ
+            // ── HEADER ───────────────────────────────────────────────
             var HDR=32;
             doc.setFillColor(26,58,92); doc.rect(0,0,pageW,HDR,'F');
             var textX = margin;
@@ -1627,14 +1627,14 @@ function attachToMonday(){
             doc.text('ESTIMATE', pageW-margin, HDR*0.45, {align:'right'});
             y = HDR+5;
 
-            // ââ REF LINE âââââââââââââââââââââââââââââââââââââââââââââ
+            // ── REF LINE ─────────────────────────────────────────────
             doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(40,40,40);
             doc.text(subName, margin, y);
             doc.setFontSize(9); doc.setFont('helvetica','normal');
             doc.text('Date: '+dateStr, pageW-margin, y, {align:'right'});
             ln(8);
 
-            // ââ CLIENT BOX âââââââââââââââââââââââââââââââââââââââââââ
+            // ── CLIENT BOX ───────────────────────────────────────────
             var BH=26; doc.setFillColor(240,244,255); doc.rect(margin,y,pageW-margin*2,BH,'F');
             var t=(pageW-margin*2)/3, c2=margin+t, c3=margin+2*t;
             doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(110,115,145);
@@ -1648,47 +1648,47 @@ function attachToMonday(){
             doc.text('PM: '+(gv('p-pm')||''),c3+3,y+20);
             y+=BH+5;
 
-            // ââ SPEC BAR âââââââââââââââââââââââââââââââââââââââââââââ
+            // ── SPEC BAR ─────────────────────────────────────────────
             var SH=7; doc.setFillColor(228,234,248); doc.rect(margin,y,pageW-margin*2,SH,'F');
             doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,92);
-            doc.text('Box: '+(gv('p-box')||'â')+'  |  Panel: '+(gv('p-panel')||'â')+'  |  Door: '+(gv('p-door')||'â')+'  |  Kitchen Kick: '+(gv('p-kkick')||'â')+'  |  Vanity Kick: '+(gv('p-vkick')||'â'), margin+3, vctr(y,SH,7.5));
+            doc.text('Box: '+(gv('p-box')||'—')+'  |  Panel: '+(gv('p-panel')||'—')+'  |  Door: '+(gv('p-door')||'—')+'  |  Kitchen Kick: '+(gv('p-kkick')||'—')+'  |  Vanity Kick: '+(gv('p-vkick')||'—'), margin+3, vctr(y,SH,7.5));
             y+=SH+6;
 
             var total=0;
 
-            // ââ CABINETS âââââââââââââââââââââââââââââââââââââââââââââ
+            // ── CABINETS ─────────────────────────────────────────────
             var rows=document.querySelectorAll('#cab-tbody tr');
             if(rows.length){
               secHdr('CABINETS');
               colHdr([15,58,16,16,16,22,37],['Code','Cabinet / Location','W','H','D','Finish','Unit $']);
-              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var p=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; if(!inp[0]) return; dataRow([15,58,16,16,16,22,37],[inp[0].value,inp[1]?inp[1].value:'',inp[2]?inp[2].value:'',inp[3]?inp[3].value:'',inp[4]?inp[4].value:'',tr.querySelector('select')?tr.querySelector('select').value:'',p?'$'+p.toFixed(2):'â'],ri%2===1); total+=p; ri++; }); y+=4;
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var p=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; if(!inp[0]) return; dataRow([15,58,16,16,16,22,37],[inp[0].value,inp[1]?inp[1].value:'',inp[2]?inp[2].value:'',inp[3]?inp[3].value:'',inp[4]?inp[4].value:'',tr.querySelector('select')?tr.querySelector('select').value:'',p?'$'+p.toFixed(2):'—'],ri%2===1); total+=p; ri++; }); y+=4;
             }
 
-            // ââ ISLAND PANELS âââââââââââââââââââââââââââââââââââââââââ
+            // ── ISLAND PANELS ─────────────────────────────────────────
             rows=document.querySelectorAll('#panel-tbody tr');
             if(rows.length){
               secHdr('ISLAND PANELS');
               colHdr([15,80,22,22,41],['Code','Description','W','H','Unit $']);
-              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var p=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; if(!inp[0]) return; dataRow([15,80,22,22,41],[inp[0].value,inp[1]?inp[1].value:'',inp[2]?inp[2].value:'',inp[3]?inp[3].value:'',p?'$'+p.toFixed(2):'â'],ri%2===1); total+=p; ri++; }); y+=4;
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var p=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; if(!inp[0]) return; dataRow([15,80,22,22,41],[inp[0].value,inp[1]?inp[1].value:'',inp[2]?inp[2].value:'',inp[3]?inp[3].value:'',p?'$'+p.toFixed(2):'—'],ri%2===1); total+=p; ri++; }); y+=4;
             }
 
-            // ââ TOEKICKS âââââââââââââââââââââââââââââââââââââââââââââ
+            // ── TOEKICKS ─────────────────────────────────────────────
             rows=document.querySelectorAll('#kick-tbody tr');
             if(rows.length){
               secHdr('TOEKICKS & KICKS');
               colHdr([15,88,26,26,25],['Code','Description','Lin Ft','$/ft','Total']);
-              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var ns=tr.querySelectorAll('input[type=number]'); var ft=parseFloat(ns[0]?ns[0].value:0)||0,pft=parseFloat(ns[1]?ns[1].value:0)||0,tt=ft*pft; if(!inp[0]) return; dataRow([15,88,26,26,25],[inp[0].value,inp[1]?inp[1].value:'',ft||'â',pft?'$'+pft.toFixed(2):'â',tt?'$'+tt.toFixed(2):'â'],ri%2===1); total+=tt; ri++; }); y+=4;
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var ns=tr.querySelectorAll('input[type=number]'); var ft=parseFloat(ns[0]?ns[0].value:0)||0,pft=parseFloat(ns[1]?ns[1].value:0)||0,tt=ft*pft; if(!inp[0]) return; dataRow([15,88,26,26,25],[inp[0].value,inp[1]?inp[1].value:'',ft||'—',pft?'$'+pft.toFixed(2):'—',tt?'$'+tt.toFixed(2):'—'],ri%2===1); total+=tt; ri++; }); y+=4;
             }
 
-            // ââ MATERIALS ââââââââââââââââââââââââââââââââââââââââââââ
+            // ── MATERIALS ────────────────────────────────────────────
             rows=document.querySelectorAll('#mat-tbody tr');
             if(rows.length){
               secHdr('MATERIALS & HARDWARE');
               colHdr([78,20,26,31,25],['Item','Qty','Unit','Unit $','Total']);
-              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var ns=tr.querySelectorAll('input[type=number]'); var qty=parseFloat(ns[0]?ns[0].value:1)||1,price=parseFloat(ns[1]?ns[1].value:0)||0,tt=qty*price; if(!inp[0]||!inp[0].value) return; dataRow([78,20,26,31,25],[inp[0].value,qty,inp[2]?inp[2].value:'ea',price?'$'+price.toFixed(2):'â',tt?'$'+tt.toFixed(2):'â'],ri%2===1); total+=tt; ri++; }); y+=4;
+              var ri=0; rows.forEach(function(tr){ var inp=tr.querySelectorAll('input'); var ns=tr.querySelectorAll('input[type=number]'); var qty=parseFloat(ns[0]?ns[0].value:1)||1,price=parseFloat(ns[1]?ns[1].value:0)||0,tt=qty*price; if(!inp[0]||!inp[0].value) return; dataRow([78,20,26,31,25],[inp[0].value,qty,inp[2]?inp[2].value:'ea',price?'$'+price.toFixed(2):'—',tt?'$'+tt.toFixed(2):'—'],ri%2===1); total+=tt; ri++; }); y+=4;
             }
 
-            // ââ COUNTERTOPS ââââââââââââââââââââââââââââââââââââââââââ
+            // ── COUNTERTOPS ──────────────────────────────────────────
             rows=document.querySelectorAll('#ct-tbody tr');
             if(rows.length){
               secHdr('COUNTERTOPS');
@@ -1696,7 +1696,7 @@ function attachToMonday(){
               var ri=0; rows.forEach(function(tr){ var loc=tr.querySelector('input')?tr.querySelector('input').value:''; var mat=tr.querySelector('select')?tr.querySelector('select').value.split('(')[0].trim():''; var sf=parseFloat(tr.querySelector('input[type=number]')?tr.querySelector('input[type=number]').value:0)||0; var rt=parseFloat(tr.querySelector('.ct-rate')?tr.querySelector('.ct-rate').textContent.replace('$',''):0)||0; var tt=sf*rt; if(!tt) return; dataRow([35,73,22,25,25],[loc,mat,sf,'$'+rt.toFixed(2),'$'+tt.toFixed(2)],ri%2===1); total+=tt; ri++; }); y+=4;
             }
 
-            // ââ TOTALS âââââââââââââââââââââââââââââââââââââââââââââââ
+            // ── TOTALS ───────────────────────────────────────────────
             checkPage(58); y+=5;
             var mkp=parseFloat(gv('markup-pct'))||25, gstP=parseFloat(gv('gst-pct'))||5;
             var mk=total*(mkp/100), bt=total+mk, gst=bt*(gstP/100), grand=bt+gst;
@@ -1706,11 +1706,11 @@ function attachToMonday(){
             totRow('GST ('+gstP+'%)',   '$'+gst.toFixed(2),   false);
             totRow('TOTAL',              '$'+grand.toFixed(2), true);
 
-            // ââ SCOPE / NOTES ââââââââââââââââââââââââââââââââââââââââ
+            // ── SCOPE / NOTES ────────────────────────────────────────
             var sc=gv('p-scope'); if(sc){ checkPage(20); y+=5; doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,92); doc.text('Scope of Work:',margin,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60); var sl=doc.splitTextToSize(sc,pageW-margin*2); doc.text(sl,margin,y); y+=sl.length*5+2; }
             var nt=gv('p-notes'); if(nt){ checkPage(20); y+=3; doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(200,100,0); doc.text('Special Notes:',margin,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(80,60,40); var nl=doc.splitTextToSize(nt,pageW-margin*2); doc.text(nl,margin,y); }
 
-            // ââ PAGE FOOTER ââââââââââââââââââââââââââââââââââââââââââ
+            // ── PAGE FOOTER ──────────────────────────────────────────
             var pc=doc.getNumberOfPages();
             for(var p=1;p<=pc;p++){
               doc.setPage(p); doc.setFillColor(228,234,248); doc.rect(0,288,pageW,9,'F');
@@ -1762,11 +1762,11 @@ function connectQBO(){
   let popup = null;
   try { popup = window.open(oauthUrl, 'QBO', 'width=600,height=700'); } catch(e) {}
   if(!popup || popup.closed || typeof popup.closed === 'undefined'){
-    // Popup blocked â do full-page redirect
+    // Popup blocked — do full-page redirect
     window.location.href = oauthUrl;
     return;
   }
-  document.getElementById('qbo-status-text').textContent = 'â³ Authorize in the popup window...';
+  document.getElementById('qbo-status-text').textContent = '⏳ Authorize in the popup window...';
   const t = setInterval(() => {
     try {
       if(popup.closed){ clearInterval(t); initQBO(); return; }
@@ -1799,9 +1799,9 @@ function setQBOConnected(name,at){
   const bar=document.getElementById('qbo-status-bar');
   if(bar){bar.classList.remove('qbo-pending');bar.classList.add('qbo-connected');}
   const txt=document.getElementById('qbo-status-text');
-  if(txt){txt.style.color='#00884a';txt.innerHTML='â Connected: <b>'+name+'</b> â '+new Date(at).toLocaleDateString();}
+  if(txt){txt.style.color='#00884a';txt.innerHTML='● Connected: <b>'+name+'</b> — '+new Date(at).toLocaleDateString();}
   const btn=document.getElementById('qbo-connect-btn');
-  if(btn){btn.textContent='â Connected';btn.style.background='#00884a';btn.disabled=true;}
+  if(btn){btn.textContent='✓ Connected';btn.style.background='#00884a';btn.disabled=true;}
   const sec=document.getElementById('qbo-create-section');
   if(sec){sec.style.opacity='1';sec.style.pointerEvents='all';}
   const push=document.getElementById('qbo-push-btn');
@@ -2022,7 +2022,7 @@ function loadBrandGlobally() {
                 if (raw) try { applyBrand(JSON.parse(raw)); } catch(e) {}
             });
         } else {
-            // No Monday SDK â use localStorage directly
+            // No Monday SDK — use localStorage directly
             var raw = localStorage.getItem('se2_brand_global');
             if (raw) try { applyBrand(JSON.parse(raw)); } catch(e) {}
         }
@@ -2132,7 +2132,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }, 1500);
 
-  // If we already have itemId from URL, load immediately â don't wait for SDK
+  // If we already have itemId from URL, load immediately — don't wait for SDK
   if(window._mondayItemId){
     window._loadDataDone = true;
     loadData();
@@ -2152,7 +2152,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       }
     });
   } else {
-    // No URL item ID â wait for SDK to provide context
+    // No URL item ID — wait for SDK to provide context
     waitForSDK(function(){
       if(window.monday){
         window.monday.get('context').then(function(r){
