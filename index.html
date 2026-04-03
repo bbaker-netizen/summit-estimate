@@ -1917,19 +1917,28 @@ function maybeRefreshQBOToken(){
 function pushToQBO(){
   const total=buildQuote();
   const resDiv=document.getElementById('qbo-result');
-  if(resDiv) resDiv.innerHTML='<span style="color:#555">⏳ Creating estimate in QuickBooks…</span>';
+  if(resDiv) resDiv.innerHTML='<span style="color:#555">\u23F3 Creating estimate in QuickBooks\u2026</span>';
   const conn=JSON.parse(localStorage.getItem('qboConnection')||'{}');
   if(!conn.access_token||!conn.realmId){
-    if(resDiv) resDiv.innerHTML='<span style="color:#c00">❌ Not connected to QuickBooks. Please connect first.</span>';
+    if(resDiv) resDiv.innerHTML='<span style="color:#c00">\u274C Not connected to QuickBooks. Please connect first.</span>';
     return;
   }
   const customerName=((document.getElementById('qbo-customer')||{}).value||(document.getElementById('p-client')||{}).value||'').trim();
+  if(!customerName){
+    if(resDiv) resDiv.innerHTML='<span style="color:#c00">\u274C Please enter a customer name.</span>';
+    return;
+  }
   const docNum=((document.getElementById('qbo-title')||{}).value||'EST-001').trim();
   const dueDate=((document.getElementById('qbo-due')||{}).value||'').trim();
   const memo=((document.getElementById('qbo-msg')||{}).value||'').trim();
   const txnDate=new Date().toISOString().slice(0,10);
   const lineAmt=parseFloat((total||0).toFixed(2));
-  const estimate={DocNumber:docNum,TxnDate:txnDate,Line:[{Amount:lineAmt,DetailType:'SalesItemLineDetail',SalesItemLineDetail:{ItemRef:{value:'1',name:'Services'}}}]};
+  // Build line items with GST/HST tax code (value '5' = HST ON for Canadian sandbox)
+  const gstCode={value:'5'};
+  const estimate={DocNumber:docNum,TxnDate:txnDate,
+    Line:[{Amount:lineAmt,DetailType:'SalesItemLineDetail',SalesItemLineDetail:{ItemRef:{value:'1',name:'Services'},TaxCodeRef:gstCode}}],
+    TxnTaxDetail:{TxnTaxCodeRef:gstCode}
+  };
   if(dueDate) estimate.DueDate=dueDate;
   if(memo) estimate.CustomerMemo={value:memo};
   function qboProxy(endpoint, method, payload){
@@ -1943,25 +1952,35 @@ function pushToQBO(){
     });
   }
   function doPost(custRef){
-    if(custRef) estimate.CustomerRef=custRef;
+    estimate.CustomerRef=custRef;
     qboProxy('estimate','POST',estimate).then(function(data){
-      const id=(data.Estimate&&data.Estimate.Id)||'?';
-      const amt=(data.Estimate&&data.Estimate.TotalAmt)||lineAmt;
-      if(resDiv) resDiv.innerHTML='<div style="background:#e0ffe8;border:1px solid #00884a;border-radius:6px;padding:10px;margin-top:8px"><b style="color:#00884a">✅ Estimate Created!</b><div style="font-size:11px;margin-top:4px">QBO ID: '+id+' · Total: $'+parseFloat(amt).toFixed(2)+'</div></div>';
+      var id=(data.Estimate&&data.Estimate.Id)||'?';
+      var amt=(data.Estimate&&data.Estimate.TotalAmt)||lineAmt;
+      if(resDiv) resDiv.innerHTML='<div style="background:#e0ffe8;border:1px solid #00884a;border-radius:6px;padding:10px;margin-top:8px"><b style="color:#00884a">\u2705 Estimate Created!</b><div style="font-size:11px;margin-top:4px">QBO ID: '+id+' \u00B7 Total: $'+parseFloat(amt).toFixed(2)+'</div></div>';
     }).catch(function(e){
-      if(resDiv) resDiv.innerHTML='<span style="color:#c00">❌ QBO error: '+e.message+'</span>';
+      if(resDiv) resDiv.innerHTML='<span style="color:#c00">\u274C QBO error: '+e.message+'</span>';
     });
   }
-  if(customerName){
-    var q="SELECT * FROM Customer WHERE DisplayName = '"+customerName.replace(/'/g,"''")+'"';
-    qboProxy('query?query='+encodeURIComponent(q),'GET').then(function(d){
-      var custs=d.QueryResponse&&d.QueryResponse.Customer;
-      if(custs&&custs.length>0) doPost({value:custs[0].Id,name:custs[0].DisplayName});
-      else doPost(null);
-    }).catch(function(){doPost(null);});
-  } else {
-    doPost(null);
-  }
+  // Look up customer; create if not found
+  var q="SELECT Id, DisplayName FROM Customer WHERE DisplayName = '"+customerName.replace(/'/g,"''")+'"';
+  qboProxy('query?query='+encodeURIComponent(q),'GET').then(function(d){
+    var custs=d.QueryResponse&&d.QueryResponse.Customer;
+    if(custs&&custs.length>0){
+      doPost({value:custs[0].Id,name:custs[0].DisplayName});
+    } else {
+      // Create customer
+      if(resDiv) resDiv.innerHTML='<span style="color:#555">\u23F3 Creating customer "'+customerName+'" in QBO\u2026</span>';
+      qboProxy('customer','POST',{DisplayName:customerName}).then(function(cd){
+        var c=cd.Customer;
+        if(c&&c.Id) doPost({value:c.Id,name:c.DisplayName});
+        else throw new Error('Customer creation failed');
+      }).catch(function(e){
+        if(resDiv) resDiv.innerHTML='<span style="color:#c00">\u274C Could not create customer: '+e.message+'</span>';
+      });
+    }
+  }).catch(function(e){
+    if(resDiv) resDiv.innerHTML='<span style="color:#c00">\u274C Customer lookup failed: '+e.message+'</span>';
+  });
 }
 
 // ========== SAVE / LOAD ==========
