@@ -513,12 +513,39 @@ textarea{resize:vertical;min-height:55px}
     </div>
     <div style="margin-left:auto">
       <button id="qbo-connect-btn" class="qbo-btn qbo-connect" onclick="connectQBO()">🔗 Connect to QuickBooks</button>
+      <button id="qbo-refresh-btn" class="qbo-btn" onclick="refreshQBOToken(function(err){if(err)alert('Refresh failed: '+err.message);else{alert('Token refreshed!');location.reload();}})" style="display:none;font-size:10px;padding:4px 8px;background:#555">🔄 Refresh</button>
+      <button id="qbo-disconnect-btn" class="qbo-btn" onclick="if(confirm('Disconnect from QuickBooks?')){localStorage.removeItem('qboConnection');location.reload();}" style="display:none;font-size:10px;padding:4px 8px;background:#c00">✕ Disconnect</button>
     </div>
   </div>
-  <div class="warn-note">
-    <b>⚠ Admin setup required.</b> Your QBO admin must add this app in Intuit Developer portal first. 
-    Once added, click <i>Connect to QuickBooks</i> to authorize with your Intuit account. 
-    The connection is remembered in this browser — nothing leaves your QBO company file.
+  <div class="warn-note" id="qbo-setup-note">
+    <b>⚠ One-time setup:</b> Paste tokens from the
+    <a href="https://developer.intuit.com/app/developer/playground" target="_blank" style="color:#0073ea">Intuit OAuth Playground</a>
+    below to connect. Tokens auto-refresh after the initial paste.
+  </div>
+  <!-- Manual Token Paste Section -->
+  <div id="qbo-token-section" class="card" style="margin-bottom:10px">
+    <div class="card-title" style="cursor:pointer" onclick="document.getElementById('qbo-token-fields').style.display=document.getElementById('qbo-token-fields').style.display==='none'?'block':'none'">
+      🔑 Paste Tokens from OAuth Playground <span style="font-size:10px;color:#999">(click to expand)</span>
+    </div>
+    <div id="qbo-token-fields" style="display:none">
+      <div style="font-size:11px;color:#676879;margin-bottom:8px;line-height:1.6">
+        <b>Steps:</b> Go to <a href="https://developer.intuit.com/app/developer/playground" target="_blank">Intuit OAuth Playground</a> &rarr;
+        Select your workspace &amp; app &rarr; Select <i>Accounting</i> scope &rarr;
+        Click <i>Get authorization code</i> &rarr; Authorize &rarr; Click <i>Get tokens</i> &rarr;
+        Copy the Access Token, Refresh Token, and Realm ID below.
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1"><label>Access Token</label><textarea id="qbo-paste-access" rows="2" style="font-size:10px;font-family:monospace;width:100%"></textarea></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1"><label>Refresh Token</label><textarea id="qbo-paste-refresh" rows="2" style="font-size:10px;font-family:monospace;width:100%"></textarea></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Realm ID (Company ID)</label><input id="qbo-paste-realm" style="font-size:11px;font-family:monospace" placeholder="e.g. 9341456402485691"></div>
+      </div>
+      <button class="qbo-btn qbo-connect" onclick="connectQBOManual()" style="margin-top:6px">✅ Connect with These Tokens</button>
+      <div id="qbo-paste-result" style="margin-top:6px;font-size:11px"></div>
+    </div>
   </div>
   <div id="qbo-create-section" style="opacity:.4;pointer-events:none">
     <div class="card">
@@ -1748,7 +1775,7 @@ function attachToMonday(){
 }
 function initQBO(){
   const stored=localStorage.getItem('qboConnection');
-  if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); } catch(e){} }
+  if(stored){ try{ const d=JSON.parse(stored); if(d.companyName) setQBOConnected(d.companyName,d.connectedAt); maybeRefreshQBOToken(); } catch(e){} }
   const cust=document.getElementById('qbo-customer');
   if(cust&&!cust.value) cust.value=getVal('p-client');
   const title=document.getElementById('qbo-title');
@@ -1802,11 +1829,91 @@ function setQBOConnected(name,at){
   if(txt){txt.style.color='#00884a';txt.innerHTML='● Connected: <b>'+name+'</b> — '+new Date(at).toLocaleDateString();}
   const btn=document.getElementById('qbo-connect-btn');
   if(btn){btn.textContent='✓ Connected';btn.style.background='#00884a';btn.disabled=true;}
+  const rb=document.getElementById('qbo-refresh-btn');
+  if(rb) rb.style.display='inline-block';
+  const db=document.getElementById('qbo-disconnect-btn');
+  if(db) db.style.display='inline-block';
   const sec=document.getElementById('qbo-create-section');
   if(sec){sec.style.opacity='1';sec.style.pointerEvents='all';}
   const push=document.getElementById('qbo-push-btn');
   if(push) push.disabled=false;
+  // Hide token paste section and setup note when connected
+  const ts=document.getElementById('qbo-token-section');
+  if(ts) ts.style.display='none';
+  const sn=document.getElementById('qbo-setup-note');
+  if(sn) sn.style.display='none';
 }
+
+/* ---- Manual Token Paste (from OAuth Playground) ---- */
+function connectQBOManual(){
+  const at=document.getElementById('qbo-paste-access').value.trim();
+  const rt=document.getElementById('qbo-paste-refresh').value.trim();
+  const realm=document.getElementById('qbo-paste-realm').value.trim();
+  const resEl=document.getElementById('qbo-paste-result');
+  if(!at||!rt||!realm){
+    if(resEl) resEl.innerHTML='<span style="color:#c00">Please fill in all three fields.</span>';
+    return;
+  }
+  if(resEl) resEl.innerHTML='<span style="color:#555">⏳ Validating tokens…</span>';
+  fetch('/.netlify/functions/qbo-connect',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({accessToken:at,refreshToken:rt,realmId:realm})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.error){
+      // If access token expired, try refreshing first
+      if(resEl) resEl.innerHTML='<span style="color:#c00">❌ '+( data.message||data.error)+'</span>';
+      return;
+    }
+    const conn={
+      access_token:data.access_token,
+      refresh_token:data.refresh_token,
+      realmId:data.realmId,
+      companyName:data.companyName,
+      connectedAt:new Date().toISOString(),
+      tokenObtainedAt:Date.now()
+    };
+    localStorage.setItem('qboConnection',JSON.stringify(conn));
+    setQBOConnected(data.companyName||'QuickBooks',conn.connectedAt);
+    if(resEl) resEl.innerHTML='<span style="color:#00884a">✅ Connected to '+data.companyName+'!</span>';
+  }).catch(function(e){
+    if(resEl) resEl.innerHTML='<span style="color:#c00">❌ Error: '+e.message+'</span>';
+  });
+}
+
+/* ---- Auto-Refresh Token ---- */
+function refreshQBOToken(callback){
+  const conn=JSON.parse(localStorage.getItem('qboConnection')||'{}');
+  if(!conn.refresh_token) return callback&&callback(new Error('No refresh token'));
+  fetch('/.netlify/functions/qbo-refresh',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({refreshToken:conn.refresh_token,realmId:conn.realmId||''})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.error) return callback&&callback(new Error(data.message||data.error));
+    conn.access_token=data.access_token;
+    conn.refresh_token=data.refresh_token;
+    conn.tokenObtainedAt=Date.now();
+    if(data.companyName) conn.companyName=data.companyName;
+    localStorage.setItem('qboConnection',JSON.stringify(conn));
+    if(callback) callback(null,conn);
+  }).catch(function(e){
+    if(callback) callback(e);
+  });
+}
+
+// Check token age on load — refresh if older than 50 minutes (tokens last 60 min)
+function maybeRefreshQBOToken(){
+  const conn=JSON.parse(localStorage.getItem('qboConnection')||'{}');
+  if(!conn.access_token||!conn.refresh_token) return;
+  const age=Date.now()-(conn.tokenObtainedAt||0);
+  if(age>50*60*1000){
+    refreshQBOToken(function(err,updated){
+      if(!err&&updated) setQBOConnected(updated.companyName||'QuickBooks',updated.connectedAt||new Date().toISOString());
+    });
+  }
+}
+
 function pushToQBO(){
   const total=buildQuote();
   const resDiv=document.getElementById('qbo-result');
@@ -1825,16 +1932,19 @@ function pushToQBO(){
   const estimate={DocNumber:docNum,TxnDate:txnDate,Line:[{Amount:lineAmt,DetailType:'SalesItemLineDetail',SalesItemLineDetail:{ItemRef:{value:'1',name:'Services'}}}]};
   if(dueDate) estimate.DueDate=dueDate;
   if(memo) estimate.CustomerMemo={value:memo};
-  function doPost(custRef){
-    if(custRef) estimate.CustomerRef=custRef;
-    fetch('https://sandbox-quickbooks.api.intuit.com/v3/company/'+conn.realmId+'/estimate?minorversion=65',{
+  function qboProxy(endpoint, method, payload){
+    return fetch('/.netlify/functions/qbo-push',{
       method:'POST',
-      headers:{Authorization:'Bearer '+conn.access_token,'Content-Type':'application/json',Accept:'application/json'},
-      body:JSON.stringify(estimate)
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({accessToken:conn.access_token,realmId:conn.realmId,endpoint:endpoint,method:method||'GET',payload:payload||null})
     }).then(function(r){
       if(!r.ok) return r.text().then(function(t){throw new Error(r.status+': '+t.slice(0,200));});
       return r.json();
-    }).then(function(data){
+    });
+  }
+  function doPost(custRef){
+    if(custRef) estimate.CustomerRef=custRef;
+    qboProxy('estimate','POST',estimate).then(function(data){
       const id=(data.Estimate&&data.Estimate.Id)||'?';
       const amt=(data.Estimate&&data.Estimate.TotalAmt)||lineAmt;
       if(resDiv) resDiv.innerHTML='<div style="background:#e0ffe8;border:1px solid #00884a;border-radius:6px;padding:10px;margin-top:8px"><b style="color:#00884a">✅ Estimate Created!</b><div style="font-size:11px;margin-top:4px">QBO ID: '+id+' · Total: $'+parseFloat(amt).toFixed(2)+'</div></div>';
@@ -1843,11 +1953,9 @@ function pushToQBO(){
     });
   }
   if(customerName){
-    const q="SELECT * FROM Customer WHERE DisplayName = '"+customerName.replace(/'/g,"''")+'"';
-    fetch('https://sandbox-quickbooks.api.intuit.com/v3/company/'+conn.realmId+'/query?query='+encodeURIComponent(q)+'&minorversion=65',{
-      headers:{Authorization:'Bearer '+conn.access_token,Accept:'application/json'}
-    }).then(function(r){return r.json();}).then(function(d){
-      const custs=d.QueryResponse&&d.QueryResponse.Customer;
+    var q="SELECT * FROM Customer WHERE DisplayName = '"+customerName.replace(/'/g,"''")+'"';
+    qboProxy('query?query='+encodeURIComponent(q),'GET').then(function(d){
+      var custs=d.QueryResponse&&d.QueryResponse.Customer;
       if(custs&&custs.length>0) doPost({value:custs[0].Id,name:custs[0].DisplayName});
       else doPost(null);
     }).catch(function(){doPost(null);});
