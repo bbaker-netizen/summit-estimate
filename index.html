@@ -1962,7 +1962,7 @@ function pushToQBO(){
     });
   }
   // Look up customer; create if not found
-  var q="SELECT Id, DisplayName FROM Customer WHERE DisplayName = '"+customerName.replace(/'/g,"''")+'"';
+  var q="SELECT Id, DisplayName FROM Customer WHERE DisplayName = '"+customerName.replace(/'/g,"''")+"'";
   qboProxy('query?query='+encodeURIComponent(q),'GET').then(function(d){
     var custs=d.QueryResponse&&d.QueryResponse.Customer;
     if(custs&&custs.length>0){
